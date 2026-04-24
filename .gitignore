@@ -1,2 +1,31 @@
-bin/
-obj/
+## Build results
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio / IDEs
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## SQLite Database
+# Ignorar solo los archivos temporales de SQLite, pero PERMITIR que suba app.db
+*.db-shm
+*.db-wal
+
+## OS Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+## AppSettings
+# appsettings.Development.json
