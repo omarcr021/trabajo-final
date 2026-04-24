@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Iniciar sesión";
+    ViewData["Title"] = "Registro";
     Layout = null;
 }
 
@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>CampusGo – Iniciar sesión</title>
+    <title>CampusGo – Crear cuenta</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -30,7 +30,6 @@
             max-width: 860px;
         }
 
-        /* LEFT */
         .left {
             flex: 1;
             display: flex;
@@ -88,7 +87,6 @@
 
         .feature-card .icon { font-size: 22px; }
 
-        /* RIGHT */
         .card {
             flex: 1.3;
             background: #ffffff;
@@ -110,7 +108,7 @@
             margin-bottom: 1.75rem;
         }
 
-        .field { margin-bottom: 1.1rem; }
+        .field { margin-bottom: 1rem; }
 
         .field label {
             display: block;
@@ -140,7 +138,7 @@
             box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
         }
 
-        .btn-login {
+        .btn-register {
             width: 100%;
             padding: 12px;
             margin-top: 0.6rem;
@@ -155,35 +153,21 @@
             transition: background 0.15s;
         }
 
-        .btn-login:hover { background: #1d4ed8; }
+        .btn-register:hover { background: #1d4ed8; }
 
-        .register-line {
+        .login-line {
             font-size: 14px;
             color: #64748b;
             text-align: center;
         }
 
-        .register-line a {
+        .login-line a {
             color: #2563eb;
             font-weight: 600;
             text-decoration: none;
         }
 
-        .register-line a:hover { text-decoration: underline; }
-
-        .help-btn {
-            position: fixed;
-            bottom: 18px;
-            right: 18px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            border: none;
-            font-size: 16px;
-            color: #475569;
-            cursor: pointer;
-        }
+        .login-line a:hover { text-decoration: underline; }
 
         @@media (max-width: 640px) {
             .container { flex-direction: column; gap: 2rem; }
@@ -216,10 +200,20 @@
     </div>
 
     <div class="card">
-        <h1>¡Bienvenido de vuelta!</h1>
-        <p class="subtitle">Inicia sesión para continuar</p>
+        <h1>¡Únete a CampusGo!</h1>
+        <p class="subtitle">Crea tu cuenta y organiza tu vida universitaria</p>
 
-        <form method="post" asp-action="LoginPost" asp-controller="Account">
+        <form method="post" asp-action="Register" asp-controller="Account">
+            <div class="field">
+                <label for="nombre">Nombre completo</label>
+                <input type="text" id="nombre" name="nombre"
+                       placeholder="Juan Pérez" />
+            </div>
+            <div class="field">
+                <label for="carrera">Carrera</label>
+                <input type="text" id="carrera" name="carrera"
+                       placeholder="Ej: Ingeniería en Software" />
+            </div>
             <div class="field">
                 <label for="email">Correo electrónico</label>
                 <input type="email" id="email" name="email"
@@ -230,19 +224,17 @@
                 <label for="password">Contraseña</label>
                 <input type="password" id="password" name="password"
                        placeholder="••••••••"
-                       autocomplete="current-password" />
+                       autocomplete="new-password" />
             </div>
-            <button class="btn-login" type="submit">Iniciar sesión</button>
+            <button class="btn-register" type="submit">Crear cuenta</button>
         </form>
 
-        <p class="register-line">
-            ¿No tienes cuenta? <a asp-action="Register" asp-controller="Account">Regístrate</a>
+        <p class="login-line">
+            ¿Ya tienes cuenta? <a asp-action="Login" asp-controller="Account">Inicia sesión</a>
         </p>
     </div>
 
 </div>
-
-<button class="btn-login" style="position:fixed;bottom:18px;right:18px;width:36px;height:36px;border-radius:50%;padding:0;font-size:16px;margin:0;">?</button>
 
 </body>
 </html>
