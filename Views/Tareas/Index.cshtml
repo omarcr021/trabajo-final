@@ -1,0 +1,395 @@
+@{
+    ViewData["Title"] = "Tareas";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CampusGo – Tareas</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f1f5f9;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+        }
+
+        .sidebar-brand { margin-bottom: 1.5rem; padding-left: 0.5rem; }
+        .sidebar-brand h2 { font-size: 20px; font-weight: 700; color: #2563eb; }
+        .sidebar-brand p { font-size: 12px; color: #94a3b8; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #475569;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .nav-item:hover { background: #f1f5f9; }
+        .nav-item.active { background: #2563eb; color: #ffffff; font-weight: 500; }
+        .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+        /* MAIN */
+        .main {
+            margin-left: 220px;
+            padding: 2rem 2.5rem;
+            flex: 1;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .top-bar h1 { font-size: 26px; font-weight: 700; color: #0f172a; }
+        .top-bar p { font-size: 14px; color: #64748b; margin-top: 4px; }
+
+        .btn-nueva {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s;
+        }
+
+        .btn-nueva:hover { background: #1d4ed8; }
+
+        /* CARD VACÍA */
+        .empty-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            padding: 3rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .empty-card p { font-size: 15px; color: #64748b; }
+
+        .btn-agregar {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #0f172a;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: box-shadow 0.15s;
+        }
+
+        .btn-agregar:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+        /* LISTA DE TAREAS */
+        .tareas-lista { display: flex; flex-direction: column; gap: 10px; }
+
+        .tarea-item {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tarea-item.completada { opacity: 0.5; }
+        .tarea-item.completada .tarea-titulo { text-decoration: line-through; }
+
+        .tarea-check {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .tarea-check.done { background: #2563eb; border-color: #2563eb; color: white; font-size: 11px; }
+
+        .tarea-info { flex: 1; }
+        .tarea-titulo { font-size: 14px; font-weight: 500; color: #0f172a; }
+        .tarea-meta { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+        .prioridad {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 999px;
+        }
+
+        .prioridad.alta { background: #fee2e2; color: #dc2626; }
+        .prioridad.media { background: #fef9c3; color: #ca8a04; }
+        .prioridad.baja { background: #dcfce7; color: #16a34a; }
+
+        .btn-eliminar {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+        }
+
+        .btn-eliminar:hover { color: #ef4444; }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .modal h3 { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 1.25rem; }
+
+        .modal-field { margin-bottom: 1rem; }
+        .modal-field label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
+        .modal-field input, .modal-field select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            color: #0f172a;
+            outline: none;
+        }
+
+        .modal-field input:focus, .modal-field select:focus {
+            border-color: #3b82f6;
+            background: white;
+        }
+
+        .modal-btns { display: flex; gap: 10px; margin-top: 1.25rem; }
+
+        .btn-cancelar {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            color: #475569;
+        }
+
+        .btn-guardar {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-guardar:hover { background: #1d4ed8; }
+
+        @@media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <h2>CampusGo</h2>
+        <p>Tu plataforma estudiantil</p>
+    </div>
+    <a class="nav-item" href="/Account/Dashboard">
+        <span class="nav-icon">🏠</span> Inicio
+    </a>
+    <a class="nav-item active" href="/Tareas">
+        <span class="nav-icon">✅</span> Tareas
+    </a>
+    <a class="nav-item" href="/Lugares">
+        <span class="nav-icon">🍕</span> Lugares
+    </a>
+    <a class="nav-item" href="/Eventos">
+        <span class="nav-icon">📅</span> Eventos
+    </a>
+    <a class="nav-item" href="/Tips">
+        <span class="nav-icon">💡</span> Tips
+    </a>
+    <a class="nav-item" href="/Account/Perfil">
+        <span class="nav-icon">👤</span> Perfil
+    </a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+    <div class="top-bar">
+        <div>
+            <h1>Tareas</h1>
+            <p id="contador">0 pendientes, 0 completadas</p>
+        </div>
+        <button class="btn-nueva" onclick="abrirModal()">+ Nueva tarea</button>
+    </div>
+
+    <div id="empty-state" class="empty-card">
+        <p>No tienes tareas aún. ¡Agrega tu primera tarea!</p>
+        <button class="btn-agregar" onclick="abrirModal()">+ Agregar tarea</button>
+    </div>
+
+    <div id="tareas-lista" class="tareas-lista" style="display:none;"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <h3>Nueva tarea</h3>
+        <div class="modal-field">
+            <label>Título</label>
+            <input type="text" id="input-titulo" placeholder="Ej: Estudiar para el examen" />
+        </div>
+        <div class="modal-field">
+            <label>Materia</label>
+            <input type="text" id="input-materia" placeholder="Ej: Programación" />
+        </div>
+        <div class="modal-field">
+            <label>Prioridad</label>
+            <select id="input-prioridad">
+                <option value="alta">Alta</option>
+                <option value="media" selected>Media</option>
+                <option value="baja">Baja</option>
+            </select>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn-guardar" onclick="guardarTarea()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tareas = [];
+
+    function abrirModal() {
+        document.getElementById('modal').classList.add('show');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modal').classList.remove('show');
+        document.getElementById('input-titulo').value = '';
+        document.getElementById('input-materia').value = '';
+        document.getElementById('input-prioridad').value = 'media';
+    }
+
+    function guardarTarea() {
+        const titulo = document.getElementById('input-titulo').value.trim();
+        const materia = document.getElementById('input-materia').value.trim();
+        const prioridad = document.getElementById('input-prioridad').value;
+
+        if (!titulo) return;
+
+        tareas.push({ titulo, materia, prioridad, completada: false, id: Date.now() });
+        cerrarModal();
+        renderTareas();
+    }
+
+    function toggleTarea(id) {
+        tareas = tareas.map(t => t.id === id ? { ...t, completada: !t.completada } : t);
+        renderTareas();
+    }
+
+    function eliminarTarea(id) {
+        tareas = tareas.filter(t => t.id !== id);
+        renderTareas();
+    }
+
+    function renderTareas() {
+        const lista = document.getElementById('tareas-lista');
+        const empty = document.getElementById('empty-state');
+        const contador = document.getElementById('contador');
+
+        const pendientes = tareas.filter(t => !t.completada).length;
+        const completadas = tareas.filter(t => t.completada).length;
+        contador.textContent = `${pendientes} pendientes, ${completadas} completadas`;
+
+        if (tareas.length === 0) {
+            empty.style.display = 'flex';
+            lista.style.display = 'none';
+            return;
+        }
+
+        empty.style.display = 'none';
+        lista.style.display = 'flex';
+
+        lista.innerHTML = tareas.map(t => `
+            <div class="tarea-item ${t.completada ? 'completada' : ''}">
+                <div class="tarea-check ${t.completada ? 'done' : ''}" onclick="toggleTarea(${t.id})">
+                    ${t.completada ? '✓' : ''}
+                </div>
+                <div class="tarea-info">
+                    <div class="tarea-titulo">${t.titulo}</div>
+                    <div class="tarea-meta">${t.materia || 'Sin materia'}</div>
+                </div>
+                <span class="prioridad ${t.prioridad}">${t.prioridad}</span>
+                <button class="btn-eliminar" onclick="eliminarTarea(${t.id})">🗑</button>
+            </div>
+        `).join('');
+    }
+</script>
+
+</body>
+</html>

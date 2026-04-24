@@ -8,7 +8,7 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
-        return View();
+        return Redirect("/Account/Login");
     }
 
     public IActionResult Privacy()
