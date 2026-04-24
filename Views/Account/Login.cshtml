@@ -219,6 +219,13 @@
         <h1>¡Bienvenido de vuelta!</h1>
         <p class="subtitle">Inicia sesión para continuar</p>
 
+        @if (ViewBag.Error != null)
+        {
+            <div style="background: #fee2e2; border: 1px solid #f87171; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px;">
+                @ViewBag.Error
+            </div>
+        }
+
         <form method="post" asp-action="LoginPost" asp-controller="Account">
             <div class="field">
                 <label for="email">Correo electrónico</label>
