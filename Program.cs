@@ -25,11 +25,12 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Render gestiona el HTTPS automáticamente, por lo que deshabilitamos esta redirección interna 
+// para evitar el warning "Failed to determine the https port for redirect".
+// app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthentication();
