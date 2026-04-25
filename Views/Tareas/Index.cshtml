@@ -214,7 +214,6 @@
         .prioridad.media { background: #fef9c3; color: #ca8a04; }
         .prioridad.baja { background: #dcfce7; color: #16a34a; }
 
-        /* Botones de acción */
         .tarea-acciones { display: flex; gap: 6px; align-items: center; }
 
         .btn-editar {
@@ -241,7 +240,6 @@
 
         .btn-eliminar:hover { color: #ef4444; }
 
-        /* MODAL */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -372,7 +370,7 @@
             </li>
         </ul>
         <div style="padding: 1rem; margin-top: auto;">
-            <a href="/Account/Logout" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:0.75rem; color:#ef4444; text-decoration:none; border-radius:8px; font-size:14px; font-weight:500; transition:background 0.2s;">
+            <a href="/Account/Logout" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:0.75rem; color:#ef4444; text-decoration:none; border-radius:8px; font-size:14px; font-weight:500;">
                 <svg class="menu-icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Cerrar sesión
             </a>
@@ -396,7 +394,7 @@
         <div id="tareas-lista" class="tareas-lista" style="display:none;"></div>
     </main>
 
-    <!-- MODAL (Nueva / Editar) -->
+    <!-- MODAL -->
     <div class="modal-overlay" id="modal">
         <div class="modal">
             <h3 id="modal-titulo">Nueva tarea</h3>
@@ -411,6 +409,10 @@
             <div class="modal-field">
                 <label>Descripción (opcional)</label>
                 <textarea id="input-descripcion" placeholder="Ej: Repasar capítulos 3 y 4..."></textarea>
+            </div>
+            <div class="modal-field">
+                <label>Fecha límite (opcional)</label>
+                <input type="date" id="input-fecha" />
             </div>
             <div class="modal-field">
                 <label>Prioridad</label>
@@ -429,25 +431,25 @@
 
     <script>
         let tareas = [];
-        let editandoId = null; // null = nueva tarea, número = editando
+        let editandoId = null;
 
         function abrirModal(id = null) {
             editandoId = id;
 
             if (id !== null) {
-                // Modo editar: cargar datos de la tarea
                 const tarea = tareas.find(t => t.id === id);
                 document.getElementById('modal-titulo').textContent = 'Editar tarea';
                 document.getElementById('input-titulo').value = tarea.titulo;
                 document.getElementById('input-materia').value = tarea.materia;
                 document.getElementById('input-descripcion').value = tarea.descripcion || '';
+                document.getElementById('input-fecha').value = tarea.fecha || '';
                 document.getElementById('input-prioridad').value = tarea.prioridad;
             } else {
-                // Modo nueva tarea
                 document.getElementById('modal-titulo').textContent = 'Nueva tarea';
                 document.getElementById('input-titulo').value = '';
                 document.getElementById('input-materia').value = '';
                 document.getElementById('input-descripcion').value = '';
+                document.getElementById('input-fecha').value = '';
                 document.getElementById('input-prioridad').value = 'media';
             }
 
@@ -463,6 +465,7 @@
             const titulo = document.getElementById('input-titulo').value.trim();
             const materia = document.getElementById('input-materia').value.trim();
             const descripcion = document.getElementById('input-descripcion').value.trim();
+            const fecha = document.getElementById('input-fecha').value;
             const prioridad = document.getElementById('input-prioridad').value;
 
             if (!titulo) {
@@ -471,15 +474,13 @@
             }
 
             if (editandoId !== null) {
-                // Actualizar tarea existente
                 tareas = tareas.map(t =>
                     t.id === editandoId
-                        ? { ...t, titulo, materia, descripcion, prioridad }
+                        ? { ...t, titulo, materia, descripcion, fecha, prioridad }
                         : t
                 );
             } else {
-                // Crear nueva tarea
-                tareas.push({ titulo, materia, descripcion, prioridad, completada: false, id: Date.now() });
+                tareas.push({ titulo, materia, descripcion, fecha, prioridad, completada: false, id: Date.now() });
             }
 
             cerrarModal();
@@ -496,6 +497,16 @@
                 tareas = tareas.filter(t => t.id !== id);
                 renderTareas();
             }
+        }
+
+        function diasRestantes(fecha) {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const limite = new Date(fecha + 'T00:00:00');
+            const diff = Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24));
+            if (diff < 0) return `<span style="color:#ef4444">Vencida hace ${Math.abs(diff)} día(s)</span>`;
+            if (diff === 0) return `<span style="color:#f97316">⚠️ Vence hoy</span>`;
+            return `<span style="color:#16a34a">Faltan ${diff} día(s)</span>`;
         }
 
         function renderTareas() {
@@ -523,7 +534,11 @@
                     </div>
                     <div class="tarea-info">
                         <div class="tarea-titulo">${t.titulo}</div>
-                        <div class="tarea-meta">${t.materia || 'Sin materia'}${t.descripcion ? ' · ' + t.descripcion : ''}</div>
+                        <div class="tarea-meta">
+                            ${t.materia || 'Sin materia'}
+                            ${t.fecha ? ' · ⏰ ' + diasRestantes(t.fecha) : ''}
+                            ${t.descripcion ? ' · ' + t.descripcion : ''}
+                        </div>
                     </div>
                     <span class="prioridad ${t.prioridad}">${t.prioridad}</span>
                     <div class="tarea-acciones">
