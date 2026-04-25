@@ -386,6 +386,12 @@
             <button class="btn-nueva" onclick="abrirModal()">+ Nueva tarea</button>
         </div>
 
+        <div style="margin-bottom: 1.5rem;">
+            <input type="text" id="input-buscar" placeholder="🔍 Buscar tarea..."
+                oninput="renderTareas()"
+                style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; background:#fff; outline:none;" />
+        </div>
+
         <div id="empty-state" class="empty-card">
             <p>No tienes tareas aún. ¡Agrega tu primera tarea!</p>
             <button class="btn-agregar" onclick="abrirModal()">+ Agregar tarea</button>
@@ -394,7 +400,6 @@
         <div id="tareas-lista" class="tareas-lista" style="display:none;"></div>
     </main>
 
-    <!-- MODAL -->
     <div class="modal-overlay" id="modal">
         <div class="modal">
             <h3 id="modal-titulo">Nueva tarea</h3>
@@ -435,7 +440,6 @@
 
         function abrirModal(id = null) {
             editandoId = id;
-
             if (id !== null) {
                 const tarea = tareas.find(t => t.id === id);
                 document.getElementById('modal-titulo').textContent = 'Editar tarea';
@@ -452,7 +456,6 @@
                 document.getElementById('input-fecha').value = '';
                 document.getElementById('input-prioridad').value = 'media';
             }
-
             document.getElementById('modal').classList.add('show');
         }
 
@@ -518,6 +521,12 @@
             const completadas = tareas.filter(t => t.completada).length;
             contador.textContent = `${pendientes} pendientes, ${completadas} completadas`;
 
+            const busqueda = document.getElementById('input-buscar').value.toLowerCase();
+            const tareasFiltradas = tareas.filter(t =>
+                t.titulo.toLowerCase().includes(busqueda) ||
+                (t.materia && t.materia.toLowerCase().includes(busqueda))
+            );
+
             if (tareas.length === 0) {
                 empty.style.display = 'flex';
                 lista.style.display = 'none';
@@ -527,7 +536,7 @@
             empty.style.display = 'none';
             lista.style.display = 'flex';
 
-            lista.innerHTML = tareas.map(t => `
+            lista.innerHTML = tareasFiltradas.map(t => `
                 <div class="tarea-item ${t.completada ? 'completada' : ''}">
                     <div class="tarea-check ${t.completada ? 'done' : ''}" onclick="toggleTarea(${t.id})">
                         ${t.completada ? '✓' : ''}
