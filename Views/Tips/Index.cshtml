@@ -1,0 +1,499 @@
+@using System.Globalization
+@model trabfinal.Models.TipsDashboardViewModel
+@{
+    ViewData["Title"] = "Tips";
+    Layout = null;
+
+    var cultura = new CultureInfo("es-PE");
+    var examenes = Model?.Examenes ?? new List<trabfinal.Models.ExamenPlan>();
+    var tips = Model?.Tips ?? new List<trabfinal.Models.TipEstudio>();
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusGo - Tips</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --sidebar-width: 250px;
+            --line: #f1f5f9;
+            --text-main: #1e293b;
+            --text-soft: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", system-ui, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #ffffff;
+            color: #333;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            border-right: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 0;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .brand-sub {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1.5rem 1rem;
+            flex: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            gap: 12px;
+        }
+
+        .sidebar-menu a:hover:not(.active) {
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        .sidebar-menu a.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem 3rem;
+            overflow-y: auto;
+        }
+
+        .header-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .header-date {
+            color: #94a3b8;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .summary-banner {
+            background: linear-gradient(90deg, #f97316, #fb923c);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            color: #fff;
+            margin-top: 2rem;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.18);
+        }
+
+        .summary-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .summary-sub {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.25rem 1rem;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 2.5rem 0 1rem 0;
+            color: var(--text-main);
+        }
+
+        .tips-grid,
+        .widgets-grid,
+        .exam-grid {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .tips-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .widgets-grid {
+            grid-template-columns: 1.5fr 1fr;
+            margin-top: 2rem;
+        }
+
+        .exam-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .panel,
+        .tip-card,
+        .exam-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .tip-card,
+        .exam-card {
+            padding: 1.25rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tip-card:hover,
+        .exam-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -3px rgba(0,0,0,0.05);
+            border-color: #e2e8f0;
+        }
+
+        .tip-badge,
+        .priority-badge {
+            display: inline-flex;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .tip-badge {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
+        .priority-alta {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .priority-media {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .tip-card h3,
+        .exam-card h3,
+        .panel h3 {
+            font-size: 16px;
+            color: var(--text-main);
+            margin-bottom: 0.65rem;
+        }
+
+        .tip-card p,
+        .exam-card p,
+        .panel p,
+        .panel li,
+        .exam-meta {
+            font-size: 13px;
+            line-height: 1.65;
+            color: var(--text-soft);
+        }
+
+        .tip-action {
+            margin-top: 0.9rem;
+            color: #ea580c;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .exam-meta strong {
+            color: var(--text-main);
+        }
+
+        .exam-card ul,
+        .panel ul {
+            padding-left: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .panel {
+            padding: 1.5rem;
+        }
+
+        .panel + .panel {
+            margin-top: 1.25rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .checklist-day {
+            font-size: 12px;
+            color: #94a3b8;
+            min-width: 92px;
+        }
+
+        .checklist-topic {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .mini-badge {
+            background: #eff6ff;
+            color: #2563eb;
+            border-radius: 999px;
+            padding: 0.25rem 0.55rem;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        @@media (max-width: 1200px) {
+            .tips-grid,
+            .exam-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .stats-grid,
+            .tips-grid,
+            .widgets-grid,
+            .exam-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-name">CampusGo</div>
+            <div class="brand-sub">Tu plataforma estudiantil</div>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/Account/Dashboard">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    Inicio
+                </a>
+            </li>
+            <li>
+                <a href="/Tareas">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    Tareas
+                </a>
+            </li>
+            <li>
+                <a href="/Lugares">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M17 3v18"></path><path d="M4 15h16"></path><path d="M3 3l18 18"></path><path d="M7 8l-4 4"></path></svg>
+                    Lugares
+                </a>
+            </li>
+            <li>
+                <a href="/Eventos">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    Eventos
+                </a>
+            </li>
+            <li>
+                <a href="/Tips" class="active">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M9 21h6"></path><path d="M11 21v-3.8c-1.3-.4-2-1.7-2-3.1 0-2 1.8-3.6 4-3.6s4 1.6 4 3.6c0 1.4-.7 2.7-2 3.1V21"></path><path d="M12 2A4 4 0 0 0 8 6"></path></svg>
+                    Tips
+                </a>
+            </li>
+            <li>
+                <a href="/Account/Perfil">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Perfil
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <h1 class="header-title">Tips de estudio</h1>
+        <div class="header-date">Organiza mejor tus repasos, llega preparado a tus examenes y mejora tu rendimiento academico.</div>
+
+        <section class="summary-banner">
+            <div class="summary-title">Plan inteligente de estudio</div>
+            <div class="summary-sub">Aqui puedes ver consejos practicos, tus proximos examenes y lo que necesitas repasar en cada curso.</div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">@tips.Count</div>
+                    <div class="stat-label">Tips disponibles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">@examenes.Count</div>
+                    <div class="stat-label">Examenes programados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">@examenes.Count(e => e.Fecha.Date <= DateTime.Today.AddDays(7))</div>
+                    <div class="stat-label">Esta semana</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">@tips.Count(t => t.Categoria == "Repaso" || t.Categoria == "Comprension")</div>
+                    <div class="stat-label">Tips para mejorar nota</div>
+                </div>
+            </div>
+        </section>
+
+        <h2 class="section-title">Consejos para estudiar mejor</h2>
+        <section class="tips-grid">
+            @foreach (var tip in tips)
+            {
+                <article class="tip-card">
+                    <span class="tip-badge">@tip.Categoria</span>
+                    <h3>@tip.Titulo</h3>
+                    <p>@tip.Descripcion</p>
+                    <div class="tip-action">@tip.AccionRecomendada</div>
+                </article>
+            }
+        </section>
+
+        <div class="widgets-grid">
+            <div>
+                <h2 class="section-title">Tus proximos examenes</h2>
+                <section class="exam-grid">
+                    @foreach (var examen in examenes)
+                    {
+                        var prioridadClase = examen.Prioridad.ToLowerInvariant() == "alta" ? "priority-alta" : "priority-media";
+                        <article class="exam-card">
+                            <span class="priority-badge @prioridadClase">@examen.Prioridad</span>
+                            <h3>@examen.Curso</h3>
+                            <div class="exam-meta"><strong>Fecha:</strong> @examen.Fecha.ToString("dddd dd MMM yyyy - hh:mm tt", cultura)</div>
+                            <div class="exam-meta"><strong>Tipo:</strong> @examen.Tipo</div>
+                            <div class="exam-meta"><strong>Temas:</strong> @examen.Temas</div>
+                            <ul>
+                                <li>@examen.EstadoPreparacion</li>
+                                <li>Separa una sesion de practica el dia anterior.</li>
+                            </ul>
+                        </article>
+                    }
+                </section>
+            </div>
+
+            <div>
+                <h2 class="section-title">Ruta de estudio</h2>
+                <section class="panel">
+                    <h3>Que estudiar esta semana</h3>
+                    <div class="checklist-item">
+                        <div class="checklist-day">Hoy</div>
+                        <div class="checklist-topic">Programacion: practica listas, archivos y validaciones</div>
+                        <span class="mini-badge">2 h</span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-day">Mañana</div>
+                        <div class="checklist-topic">Base de Datos: joins, subconsultas y normalizacion</div>
+                        <span class="mini-badge">2.5 h</span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-day">Miércoles</div>
+                        <div class="checklist-topic">Matematica Discreta: logica y combinatoria</div>
+                        <span class="mini-badge">1.5 h</span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-day">Jueves</div>
+                        <div class="checklist-topic">Arquitectura: CPU, memoria y buses</div>
+                        <span class="mini-badge">1.5 h</span>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h3>Extra para sacar mejor nota</h3>
+                    <ul>
+                        <li>Empieza cada sesion resolviendo un ejercicio corto antes de leer teoria.</li>
+                        <li>Marca los temas donde fallas y repitelos 24 horas despues.</li>
+                        <li>Haz un simulacro sin apuntes para medir tu nivel real.</li>
+                        <li>Repasa formulas y definiciones clave antes de dormir.</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
