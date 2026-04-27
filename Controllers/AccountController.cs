@@ -46,7 +46,8 @@ public class AccountController : Controller
 
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
-            return RedirectToAction("Login");
+            await IniciarSesionAsync(usuario);
+            return RedirectToAction("Dashboard");
         }
         return View(usuario);
     }
@@ -59,19 +60,7 @@ public class AccountController : Controller
 
         if (usuario != null)
         {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, usuario.Nombre),
-                new Claim(ClaimTypes.Email, usuario.Email),
-                new Claim("Carrera", usuario.Carrera ?? ""),
-                new Claim("UserId", usuario.Id.ToString())
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme, 
-                new ClaimsPrincipal(claimsIdentity));
+            await IniciarSesionAsync(usuario);
 
             return RedirectToAction("Dashboard");
         }
@@ -91,5 +80,28 @@ public class AccountController : Controller
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Login");
+    }
+
+    private async Task IniciarSesionAsync(Usuario usuario)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, usuario.Nombre),
+            new Claim(ClaimTypes.Email, usuario.Email),
+            new Claim("Carrera", usuario.Carrera ?? ""),
+            new Claim("UserId", usuario.Id.ToString())
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+        };
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            authProperties);
     }
 }

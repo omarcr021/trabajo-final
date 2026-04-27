@@ -43,7 +43,12 @@ namespace trabfinal.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Tareas");
                 });
@@ -72,6 +77,15 @@ namespace trabfinal.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("trabfinal.Models.Tarea", b =>
+                {
+                    b.HasOne("trabfinal.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId");
+
+                    b.Navigation("Usuario");
                 });
 #pragma warning restore 612, 618
         }

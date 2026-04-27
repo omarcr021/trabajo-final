@@ -17,4 +17,8 @@ public class Tarea
     public bool Completada { get; set; }
 
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+
+    public int? UsuarioId { get; set; }
+
+    public Usuario? Usuario { get; set; }
 }
