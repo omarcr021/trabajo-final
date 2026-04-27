@@ -7,6 +7,7 @@
 
     var cultura = new CultureInfo("es-PE");
     var eventosSimilares = ViewBag.EventosSimilares as IEnumerable<trabfinal.Models.Evento> ?? Enumerable.Empty<trabfinal.Models.Evento>();
+    var estaRegistrado = ViewBag.EstaRegistrado as bool? ?? false;
     var categoriaNormalizada = (Model?.Categoria ?? string.Empty).Trim().ToLowerInvariant();
     string mostrarCategoria = categoriaNormalizada switch
     {
@@ -389,7 +390,16 @@
                 </div>
 
                 <div class="actions-row">
-                    <a href="#" class="btn btn-primary">Asistir al evento</a>
+                    @if (estaRegistrado)
+                    {
+                        <button type="button" class="btn btn-success" disabled>Registrado</button>
+                    }
+                    else
+                    {
+                        <form asp-action="Registrar" asp-route-id="@Model!.Id" method="post">
+                            <button type="submit" class="btn btn-primary">Asistir al evento</button>
+                        </form>
+                    }
                     <a href="/Eventos" class="btn btn-outline-secondary">Explorar más eventos</a>
                 </div>
             </div>

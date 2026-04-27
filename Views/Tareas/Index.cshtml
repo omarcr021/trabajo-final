@@ -202,6 +202,8 @@
         .tarea-info { flex: 1; }
         .tarea-titulo { font-size: 15px; font-weight: 500; color: #1e293b; }
         .tarea-meta { font-size: 13px; color: #94a3b8; margin-top: 3px; }
+        .tarea-descripcion { font-size: 13px; color: #64748b; margin-top: 6px; }
+        .tarea-recordatorio { font-size: 12px; color: #2563eb; margin-top: 4px; }
 
         .prioridad {
             font-size: 11px;
@@ -420,6 +422,10 @@
                 <input type="date" id="input-fecha" />
             </div>
             <div class="modal-field">
+                <label>Recordatorio (opcional)</label>
+                <input type="datetime-local" id="input-recordatorio" />
+            </div>
+            <div class="modal-field">
                 <label>Prioridad</label>
                 <select id="input-prioridad">
                     <option value="alta">Alta</option>
@@ -436,6 +442,7 @@
 
     <script>
         let tareas = [];
+        let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', cargarTareas);
 
@@ -445,9 +452,10 @@
                 const tarea = tareas.find(t => t.id === id);
                 document.getElementById('modal-titulo').textContent = 'Editar tarea';
                 document.getElementById('input-titulo').value = tarea.titulo;
-                document.getElementById('input-materia').value = tarea.materia;
+                document.getElementById('input-materia').value = tarea.materia || '';
                 document.getElementById('input-descripcion').value = tarea.descripcion || '';
-                document.getElementById('input-fecha').value = tarea.fecha || '';
+                document.getElementById('input-fecha').value = formatearFechaInput(tarea.fechaLimite);
+                document.getElementById('input-recordatorio').value = formatearFechaHoraInput(tarea.recordatorio);
                 document.getElementById('input-prioridad').value = tarea.prioridad;
             } else {
                 document.getElementById('modal-titulo').textContent = 'Nueva tarea';
@@ -455,6 +463,7 @@
                 document.getElementById('input-materia').value = '';
                 document.getElementById('input-descripcion').value = '';
                 document.getElementById('input-fecha').value = '';
+                document.getElementById('input-recordatorio').value = '';
                 document.getElementById('input-prioridad').value = 'media';
             }
             document.getElementById('modal').classList.add('show');
@@ -462,8 +471,12 @@
 
         function cerrarModal() {
             document.getElementById('modal').classList.remove('show');
+            editandoId = null;
             document.getElementById('input-titulo').value = '';
             document.getElementById('input-materia').value = '';
+            document.getElementById('input-descripcion').value = '';
+            document.getElementById('input-fecha').value = '';
+            document.getElementById('input-recordatorio').value = '';
             document.getElementById('input-prioridad').value = 'media';
         }
 
@@ -482,7 +495,8 @@
             const titulo = document.getElementById('input-titulo').value.trim();
             const materia = document.getElementById('input-materia').value.trim();
             const descripcion = document.getElementById('input-descripcion').value.trim();
-            const fecha = document.getElementById('input-fecha').value;
+            const fechaLimite = document.getElementById('input-fecha').value || null;
+            const recordatorio = document.getElementById('input-recordatorio').value || null;
             const prioridad = document.getElementById('input-prioridad').value;
 
             if (!titulo) {
@@ -490,10 +504,11 @@
                 return;
             }
 
-            const response = await fetch('/Tareas/Crear', {
+            const url = editandoId ? `/Tareas/Editar/${editandoId}` : '/Tareas/Crear';
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo, materia, prioridad })
+                body: JSON.stringify({ titulo, materia, descripcion, fechaLimite, recordatorio, prioridad })
             });
 
             if (!response.ok) {
@@ -502,7 +517,11 @@
             }
 
             const tarea = await response.json();
-            tareas.unshift(tarea);
+            if (editandoId) {
+                tareas = tareas.map(t => t.id === editandoId ? tarea : t);
+            } else {
+                tareas.unshift(tarea);
+            }
             cerrarModal();
             renderTareas();
         }
@@ -520,6 +539,10 @@
         }
 
         async function eliminarTarea(id) {
+            if (!confirm('¿Eliminar esta tarea?')) {
+                return;
+            }
+
             const response = await fetch(`/Tareas/Eliminar/${id}`, { method: 'POST' });
             if (!response.ok) {
                 alert('No se pudo eliminar la tarea.');
@@ -534,6 +557,19 @@
             const div = document.createElement('div');
             div.textContent = valor ?? '';
             return div.innerHTML;
+        }
+
+        function formatearFechaInput(valor) {
+            return valor ? valor.substring(0, 10) : '';
+        }
+
+        function formatearFechaHoraInput(valor) {
+            return valor ? valor.substring(0, 16) : '';
+        }
+
+        function formatearFecha(valor) {
+            if (!valor) return '';
+            return new Date(valor).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' });
         }
 
         function renderTareas() {
@@ -567,9 +603,12 @@
                     </div>
                     <div class="tarea-info">
                         <div class="tarea-titulo">${escaparHtml(t.titulo)}</div>
-                        <div class="tarea-meta">${escaparHtml(t.materia || 'Sin materia')}</div>
+                        <div class="tarea-meta">${escaparHtml(t.materia || 'Sin materia')}${t.fechaLimite ? ` · Vence: ${escaparHtml(formatearFecha(t.fechaLimite))}` : ''}</div>
+                        ${t.descripcion ? `<div class="tarea-descripcion">${escaparHtml(t.descripcion)}</div>` : ''}
+                        ${t.recordatorio ? `<div class="tarea-recordatorio">Recordatorio: ${escaparHtml(formatearFecha(t.recordatorio))}</div>` : ''}
                     </div>
                     <span class="prioridad ${t.prioridad}">${escaparHtml(t.prioridad)}</span>
+                    <button class="btn-editar" onclick="abrirModal(${t.id})" title="Editar tarea">✎</button>
                     <button class="btn-eliminar" onclick="eliminarTarea(${t.id})">🗑</button>
                 </div>
             `).join('');

@@ -6,6 +6,7 @@
 
     var eventos = Model?.ToList() ?? new List<trabfinal.Models.Evento>();
     var cultura = new CultureInfo("es-PE");
+    var eventosInscritos = ViewBag.EventosInscritos as List<int> ?? new List<int>();
 
     string MostrarCategoria(string? categoria) => (categoria ?? string.Empty).Trim().ToLowerInvariant() switch
     {
@@ -321,6 +322,10 @@
             margin-top: auto;
         }
 
+        .event-actions form {
+            margin: 0;
+        }
+
         .event-actions .btn {
             border-radius: 10px;
             font-size: 14px;
@@ -448,6 +453,7 @@
             <section class="event-grid" id="eventGrid">
                 @foreach (var evento in eventos)
                 {
+                    var estaInscrito = eventosInscritos.Contains(evento.Id);
                     var categoriaNormalizada = (evento.Categoria ?? string.Empty).Trim().ToLowerInvariant();
                     var categoriaClase = categoriaNormalizada switch
                     {
@@ -478,7 +484,16 @@
                         </ul>
 
                         <div class="event-actions">
-                            <a href="#" class="btn btn-primary">Asistir</a>
+                            @if (estaInscrito)
+                            {
+                                <button type="button" class="btn btn-success" disabled>Registrado</button>
+                            }
+                            else
+                            {
+                                <form asp-action="Registrar" asp-route-id="@evento.Id" method="post">
+                                    <button type="submit" class="btn btn-primary w-100">Asistir</button>
+                                </form>
+                            }
                             <a asp-action="Details" asp-route-id="@evento.Id" class="btn btn-outline-secondary">Ver detalles</a>
                         </div>
                     </article>
