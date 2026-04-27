@@ -10,4 +10,5 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<Tarea> Tareas { get; set; }
 }
