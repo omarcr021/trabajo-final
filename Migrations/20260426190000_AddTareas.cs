@@ -21,12 +21,24 @@ namespace trabfinal.Migrations
                     Materia = table.Column<string>(type: "TEXT", nullable: true),
                     Prioridad = table.Column<string>(type: "TEXT", nullable: false),
                     Completada = table.Column<bool>(type: "INTEGER", nullable: false),
-                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UsuarioId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tareas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Tareas_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tareas_UsuarioId",
+                table: "Tareas",
+                column: "UsuarioId");
         }
 
         /// <inheritdoc />

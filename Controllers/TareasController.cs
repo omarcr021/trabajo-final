@@ -1,16 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using System.Text.Json;
 using trabfinal.Data;
 using trabfinal.Models;
 
 namespace trabfinal.Controllers;
 
+[Authorize]
 [Route("Tareas")]
 public class TareasController : Controller
 {
-    private const string TareasCacheKey = "tareas:listado";
     private readonly AppDbContext _context;
     private readonly IDistributedCache _cache;
 
@@ -22,21 +24,27 @@ public class TareasController : Controller
 
     [HttpGet("")]
     [HttpGet("Index")]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
+        await RegistrarActividadRedisAsync("index");
         return View();
     }
 
     [HttpGet("Listar")]
     public async Task<IActionResult> Listar()
     {
-        var tareasEnCache = await _cache.GetStringAsync(TareasCacheKey);
+        var usuarioId = ObtenerUsuarioId();
+        var tareasCacheKey = ObtenerTareasCacheKey(usuarioId);
+        await RegistrarActividadRedisAsync("listar");
+
+        var tareasEnCache = await _cache.GetStringAsync(tareasCacheKey);
         if (!string.IsNullOrEmpty(tareasEnCache))
         {
             return Content(tareasEnCache, "application/json");
         }
 
         var tareas = await _context.Tareas
+            .Where(t => t.UsuarioId == usuarioId)
             .OrderBy(t => t.Completada)
             .ThenByDescending(t => t.FechaCreacion)
             .Select(t => new TareaResponse(
@@ -49,7 +57,7 @@ public class TareasController : Controller
 
         var json = JsonSerializer.Serialize(tareas);
         await _cache.SetStringAsync(
-            TareasCacheKey,
+            tareasCacheKey,
             json,
             new DistributedCacheEntryOptions
             {
@@ -67,6 +75,7 @@ public class TareasController : Controller
             return BadRequest(new { mensaje = "El titulo es obligatorio." });
         }
 
+        var usuarioId = ObtenerUsuarioId();
         var prioridad = NormalizarPrioridad(request.Prioridad);
         var tarea = new Tarea
         {
@@ -74,12 +83,14 @@ public class TareasController : Controller
             Materia = string.IsNullOrWhiteSpace(request.Materia) ? null : request.Materia.Trim(),
             Prioridad = prioridad,
             Completada = false,
-            FechaCreacion = DateTime.UtcNow
+            FechaCreacion = DateTime.UtcNow,
+            UsuarioId = usuarioId
         };
 
         _context.Tareas.Add(tarea);
         await _context.SaveChangesAsync();
-        await _cache.RemoveAsync(TareasCacheKey);
+        await _cache.RemoveAsync(ObtenerTareasCacheKey(usuarioId));
+        await RegistrarActividadRedisAsync("crear");
 
         return Json(TareaResponse.FromEntity(tarea));
     }
@@ -87,7 +98,8 @@ public class TareasController : Controller
     [HttpPost("CambiarEstado/{id:int}")]
     public async Task<IActionResult> CambiarEstado(int id)
     {
-        var tarea = await _context.Tareas.FindAsync(id);
+        var usuarioId = ObtenerUsuarioId();
+        var tarea = await _context.Tareas.FirstOrDefaultAsync(t => t.Id == id && t.UsuarioId == usuarioId);
         if (tarea is null)
         {
             return NotFound();
@@ -95,7 +107,8 @@ public class TareasController : Controller
 
         tarea.Completada = !tarea.Completada;
         await _context.SaveChangesAsync();
-        await _cache.RemoveAsync(TareasCacheKey);
+        await _cache.RemoveAsync(ObtenerTareasCacheKey(usuarioId));
+        await RegistrarActividadRedisAsync("cambiar-estado");
 
         return Json(new { id = tarea.Id, completada = tarea.Completada });
     }
@@ -103,7 +116,8 @@ public class TareasController : Controller
     [HttpPost("Eliminar/{id:int}")]
     public async Task<IActionResult> Eliminar(int id)
     {
-        var tarea = await _context.Tareas.FindAsync(id);
+        var usuarioId = ObtenerUsuarioId();
+        var tarea = await _context.Tareas.FirstOrDefaultAsync(t => t.Id == id && t.UsuarioId == usuarioId);
         if (tarea is null)
         {
             return NotFound();
@@ -111,7 +125,8 @@ public class TareasController : Controller
 
         _context.Tareas.Remove(tarea);
         await _context.SaveChangesAsync();
-        await _cache.RemoveAsync(TareasCacheKey);
+        await _cache.RemoveAsync(ObtenerTareasCacheKey(usuarioId));
+        await RegistrarActividadRedisAsync("eliminar");
 
         return Ok();
     }
@@ -124,6 +139,39 @@ public class TareasController : Controller
             "baja" => "baja",
             _ => "media"
         };
+    }
+
+    private int ObtenerUsuarioId()
+    {
+        var userId = User.FindFirstValue("UserId");
+        if (!int.TryParse(userId, out var usuarioId))
+        {
+            throw new InvalidOperationException("No se pudo identificar al usuario autenticado.");
+        }
+
+        return usuarioId;
+    }
+
+    private static string ObtenerTareasCacheKey(int usuarioId)
+    {
+        return $"tareas:listado:usuario:{usuarioId}";
+    }
+
+    private async Task RegistrarActividadRedisAsync(string accion)
+    {
+        var usuarioId = ObtenerUsuarioId();
+        await _cache.SetStringAsync(
+            $"tareas:ultima-actividad:usuario:{usuarioId}",
+            JsonSerializer.Serialize(new
+            {
+                accion,
+                usuarioId,
+                fechaUtc = DateTime.UtcNow
+            }),
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+            });
     }
 
     public class CrearTareaRequest
