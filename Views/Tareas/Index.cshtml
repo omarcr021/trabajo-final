@@ -1,6 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Tareas";
-    Layout = null; // Mantenemos el Layout nulo para usar el diseño del dashboard
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -30,7 +30,6 @@
             color: #333;
         }
 
-        /* SIDEBAR (Estilos del Dashboard) */
         .sidebar {
             width: var(--sidebar-width);
             border-right: 1px solid #f1f5f9;
@@ -62,9 +61,7 @@
             flex: 1;
         }
 
-        .sidebar-menu li {
-            margin-bottom: 0.25rem;
-        }
+        .sidebar-menu li { margin-bottom: 0.25rem; }
 
         .sidebar-menu a {
             display: flex;
@@ -89,19 +86,18 @@
         }
 
         .menu-icon {
-            width: 18px; 
+            width: 18px;
             height: 18px;
             stroke: currentColor;
             stroke-width: 2;
             fill: none;
         }
 
-        /* MAIN CONTENT (Adaptado al Dashboard) */
         .main-content {
             flex: 1;
             padding: 2.5rem 3rem;
             overflow-y: auto;
-            background: #f8fafc; /* Fondo un poco más gris para el área de trabajo como en la versión original de tareas */
+            background: #f8fafc;
         }
 
         .header-title {
@@ -140,7 +136,6 @@
 
         .btn-nueva:hover { background: #1d4ed8; }
 
-        /* CARD VACÍA y TAREAS */
         .empty-card {
             background: white;
             border-radius: 14px;
@@ -151,7 +146,7 @@
             flex-direction: column;
             align-items: center;
             gap: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Toque sutil estilo dashboard */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .empty-card p { font-size: 15px; color: #64748b; }
@@ -184,7 +179,10 @@
             align-items: center;
             gap: 12px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            transition: box-shadow 0.15s;
         }
+
+        .tarea-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
 
         .tarea-item.completada { opacity: 0.5; }
         .tarea-item.completada .tarea-titulo { text-decoration: line-through; }
@@ -216,6 +214,20 @@
         .prioridad.media { background: #fef9c3; color: #ca8a04; }
         .prioridad.baja { background: #dcfce7; color: #16a34a; }
 
+        .tarea-acciones { display: flex; gap: 6px; align-items: center; }
+
+        .btn-editar {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            transition: color 0.15s;
+        }
+
+        .btn-editar:hover { color: var(--primary-dark); }
+
         .btn-eliminar {
             background: none;
             border: none;
@@ -223,11 +235,11 @@
             cursor: pointer;
             font-size: 16px;
             padding: 4px;
+            transition: color 0.15s;
         }
 
         .btn-eliminar:hover { color: #ef4444; }
 
-        /* MODAL */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -253,7 +265,7 @@
 
         .modal-field { margin-bottom: 1.25rem; }
         .modal-field label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
-        .modal-field input, .modal-field select {
+        .modal-field input, .modal-field select, .modal-field textarea {
             width: 100%;
             padding: 10px 12px;
             font-size: 14px;
@@ -262,9 +274,15 @@
             background: #f8fafc;
             color: #0f172a;
             outline: none;
+            font-family: inherit;
         }
 
-        .modal-field input:focus, .modal-field select:focus {
+        .modal-field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
             border-color: var(--primary);
             background: white;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -308,7 +326,6 @@
 </head>
 <body>
 
-    <!-- SIDEBAR IGUAL AL DASHBOARD -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="brand-name">CampusGo</div>
@@ -352,16 +369,14 @@
                 </a>
             </li>
         </ul>
-        
         <div style="padding: 1rem; margin-top: auto;">
-             <a href="/Account/Logout" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:0.75rem; color:#ef4444; text-decoration:none; border-radius:8px; font-size:14px; font-weight:500; transition:background 0.2s;">
-                 <svg class="menu-icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                 Cerrar sesión
-             </a>
+            <a href="/Account/Logout" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:0.75rem; color:#ef4444; text-decoration:none; border-radius:8px; font-size:14px; font-weight:500;">
+                <svg class="menu-icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Cerrar sesión
+            </a>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="main-content">
         <div class="top-bar">
             <div>
@@ -369,6 +384,12 @@
                 <p class="header-date" id="contador">0 pendientes, 0 completadas</p>
             </div>
             <button class="btn-nueva" onclick="abrirModal()">+ Nueva tarea</button>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <input type="text" id="input-buscar" placeholder="🔍 Buscar tarea..."
+                oninput="renderTareas()"
+                style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; background:#fff; outline:none;" />
         </div>
 
         <div id="empty-state" class="empty-card">
@@ -379,10 +400,9 @@
         <div id="tareas-lista" class="tareas-lista" style="display:none;"></div>
     </main>
 
-    <!-- MODAL -->
     <div class="modal-overlay" id="modal">
         <div class="modal">
-            <h3>Nueva tarea</h3>
+            <h3 id="modal-titulo">Nueva tarea</h3>
             <div class="modal-field">
                 <label>Título</label>
                 <input type="text" id="input-titulo" placeholder="Ej: Estudiar para el examen" />
@@ -390,6 +410,14 @@
             <div class="modal-field">
                 <label>Materia</label>
                 <input type="text" id="input-materia" placeholder="Ej: Programación" />
+            </div>
+            <div class="modal-field">
+                <label>Descripción (opcional)</label>
+                <textarea id="input-descripcion" placeholder="Ej: Repasar capítulos 3 y 4..."></textarea>
+            </div>
+            <div class="modal-field">
+                <label>Fecha límite (opcional)</label>
+                <input type="date" id="input-fecha" />
             </div>
             <div class="modal-field">
                 <label>Prioridad</label>
@@ -411,7 +439,24 @@
 
         document.addEventListener('DOMContentLoaded', cargarTareas);
 
-        function abrirModal() {
+        function abrirModal(id = null) {
+            editandoId = id;
+            if (id !== null) {
+                const tarea = tareas.find(t => t.id === id);
+                document.getElementById('modal-titulo').textContent = 'Editar tarea';
+                document.getElementById('input-titulo').value = tarea.titulo;
+                document.getElementById('input-materia').value = tarea.materia;
+                document.getElementById('input-descripcion').value = tarea.descripcion || '';
+                document.getElementById('input-fecha').value = tarea.fecha || '';
+                document.getElementById('input-prioridad').value = tarea.prioridad;
+            } else {
+                document.getElementById('modal-titulo').textContent = 'Nueva tarea';
+                document.getElementById('input-titulo').value = '';
+                document.getElementById('input-materia').value = '';
+                document.getElementById('input-descripcion').value = '';
+                document.getElementById('input-fecha').value = '';
+                document.getElementById('input-prioridad').value = 'media';
+            }
             document.getElementById('modal').classList.add('show');
         }
 
@@ -436,9 +481,14 @@
         async function guardarTarea() {
             const titulo = document.getElementById('input-titulo').value.trim();
             const materia = document.getElementById('input-materia').value.trim();
+            const descripcion = document.getElementById('input-descripcion').value.trim();
+            const fecha = document.getElementById('input-fecha').value;
             const prioridad = document.getElementById('input-prioridad').value;
 
-            if (!titulo) return;
+            if (!titulo) {
+                document.getElementById('input-titulo').focus();
+                return;
+            }
 
             const response = await fetch('/Tareas/Crear', {
                 method: 'POST',
@@ -495,6 +545,12 @@
             const completadas = tareas.filter(t => t.completada).length;
             contador.textContent = `${pendientes} pendientes, ${completadas} completadas`;
 
+            const busqueda = document.getElementById('input-buscar').value.toLowerCase();
+            const tareasFiltradas = tareas.filter(t =>
+                t.titulo.toLowerCase().includes(busqueda) ||
+                (t.materia && t.materia.toLowerCase().includes(busqueda))
+            );
+
             if (tareas.length === 0) {
                 empty.style.display = 'flex';
                 lista.style.display = 'none';
@@ -504,7 +560,7 @@
             empty.style.display = 'none';
             lista.style.display = 'flex';
 
-            lista.innerHTML = tareas.map(t => `
+            lista.innerHTML = tareasFiltradas.map(t => `
                 <div class="tarea-item ${t.completada ? 'completada' : ''}">
                     <div class="tarea-check ${t.completada ? 'done' : ''}" onclick="toggleTarea(${t.id})">
                         ${t.completada ? '✓' : ''}
