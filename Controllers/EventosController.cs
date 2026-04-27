@@ -1,11 +1,23 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using trabfinal.Data;
 using trabfinal.Models;
 
 namespace trabfinal.Controllers;
 
+[Authorize]
 [Route("Eventos")]
 public class EventosController : Controller
 {
+    private readonly AppDbContext _context;
+
+    public EventosController(AppDbContext context)
+    {
+        _context = context;
+    }
+
     private static readonly List<Evento> Eventos = new()
     {
         new Evento
@@ -62,19 +74,29 @@ public class EventosController : Controller
 
     [HttpGet("")]
     [HttpGet("Index")]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
+        var usuarioId = ObtenerUsuarioId();
+        ViewBag.EventosInscritos = await _context.InscripcionesEventos
+            .Where(i => i.UsuarioId == usuarioId)
+            .Select(i => i.EventoId)
+            .ToListAsync();
+
         return View(Eventos.OrderBy(e => e.FechaInicio).ToList());
     }
 
     [HttpGet("Details/{id:int}")]
-    public IActionResult Details(int id)
+    public async Task<IActionResult> Details(int id)
     {
         var evento = Eventos.FirstOrDefault(e => e.Id == id);
         if (evento is null)
         {
             return NotFound();
         }
+
+        var usuarioId = ObtenerUsuarioId();
+        ViewBag.EstaRegistrado = await _context.InscripcionesEventos
+            .AnyAsync(i => i.EventoId == id && i.UsuarioId == usuarioId);
 
         ViewBag.EventosSimilares = Eventos
             .Where(e => e.Id != id && e.Categoria == evento.Categoria)
@@ -83,5 +105,43 @@ public class EventosController : Controller
             .ToList();
 
         return View(evento);
+    }
+
+    [HttpPost("Registrar/{id:int}")]
+    public async Task<IActionResult> Registrar(int id)
+    {
+        var evento = Eventos.FirstOrDefault(e => e.Id == id);
+        if (evento is null)
+        {
+            return NotFound();
+        }
+
+        var usuarioId = ObtenerUsuarioId();
+        var yaRegistrado = await _context.InscripcionesEventos
+            .AnyAsync(i => i.EventoId == id && i.UsuarioId == usuarioId);
+
+        if (!yaRegistrado)
+        {
+            _context.InscripcionesEventos.Add(new InscripcionEvento
+            {
+                EventoId = id,
+                UsuarioId = usuarioId,
+                FechaRegistro = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    private int ObtenerUsuarioId()
+    {
+        var userId = User.FindFirstValue("UserId");
+        if (!int.TryParse(userId, out var usuarioId))
+        {
+            throw new InvalidOperationException("No se pudo identificar al usuario autenticado.");
+        }
+
+        return usuarioId;
     }
 }

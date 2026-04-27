@@ -51,6 +51,9 @@ public class TareasController : Controller
                 t.Id,
                 t.Titulo,
                 t.Materia,
+                t.Descripcion,
+                t.FechaLimite,
+                t.Recordatorio,
                 t.Prioridad,
                 t.Completada))
             .ToListAsync();
@@ -81,6 +84,9 @@ public class TareasController : Controller
         {
             Titulo = request.Titulo.Trim(),
             Materia = string.IsNullOrWhiteSpace(request.Materia) ? null : request.Materia.Trim(),
+            Descripcion = string.IsNullOrWhiteSpace(request.Descripcion) ? null : request.Descripcion.Trim(),
+            FechaLimite = request.FechaLimite,
+            Recordatorio = request.Recordatorio,
             Prioridad = prioridad,
             Completada = false,
             FechaCreacion = DateTime.UtcNow,
@@ -91,6 +97,35 @@ public class TareasController : Controller
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync(ObtenerTareasCacheKey(usuarioId));
         await RegistrarActividadRedisAsync("crear");
+
+        return Json(TareaResponse.FromEntity(tarea));
+    }
+
+    [HttpPost("Editar/{id:int}")]
+    public async Task<IActionResult> Editar(int id, [FromBody] EditarTareaRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Titulo))
+        {
+            return BadRequest(new { mensaje = "El titulo es obligatorio." });
+        }
+
+        var usuarioId = ObtenerUsuarioId();
+        var tarea = await _context.Tareas.FirstOrDefaultAsync(t => t.Id == id && t.UsuarioId == usuarioId);
+        if (tarea is null)
+        {
+            return NotFound();
+        }
+
+        tarea.Titulo = request.Titulo.Trim();
+        tarea.Materia = string.IsNullOrWhiteSpace(request.Materia) ? null : request.Materia.Trim();
+        tarea.Descripcion = string.IsNullOrWhiteSpace(request.Descripcion) ? null : request.Descripcion.Trim();
+        tarea.FechaLimite = request.FechaLimite;
+        tarea.Recordatorio = request.Recordatorio;
+        tarea.Prioridad = NormalizarPrioridad(request.Prioridad);
+
+        await _context.SaveChangesAsync();
+        await _cache.RemoveAsync(ObtenerTareasCacheKey(usuarioId));
+        await RegistrarActividadRedisAsync("editar");
 
         return Json(TareaResponse.FromEntity(tarea));
     }
@@ -178,13 +213,23 @@ public class TareasController : Controller
     {
         public string Titulo { get; set; } = string.Empty;
         public string? Materia { get; set; }
+        public string? Descripcion { get; set; }
+        public DateTime? FechaLimite { get; set; }
+        public DateTime? Recordatorio { get; set; }
         public string Prioridad { get; set; } = "media";
+    }
+
+    public class EditarTareaRequest : CrearTareaRequest
+    {
     }
 
     private sealed record TareaResponse(
         int id,
         string titulo,
         string? materia,
+        string? descripcion,
+        DateTime? fechaLimite,
+        DateTime? recordatorio,
         string prioridad,
         bool completada)
     {
@@ -194,6 +239,9 @@ public class TareasController : Controller
                 tarea.Id,
                 tarea.Titulo,
                 tarea.Materia,
+                tarea.Descripcion,
+                tarea.FechaLimite,
+                tarea.Recordatorio,
                 tarea.Prioridad,
                 tarea.Completada);
         }

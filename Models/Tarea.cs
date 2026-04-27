@@ -11,6 +11,12 @@ public class Tarea
 
     public string? Materia { get; set; }
 
+    public string? Descripcion { get; set; }
+
+    public DateTime? FechaLimite { get; set; }
+
+    public DateTime? Recordatorio { get; set; }
+
     [Required]
     public string Prioridad { get; set; } = "media";
 
