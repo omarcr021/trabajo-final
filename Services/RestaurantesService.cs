@@ -14,10 +14,17 @@ public class RestaurantesService : IRestaurantesService
     {
         _httpClient = httpClient;
         _context = context;
-        // Overpass API requiere un User-Agent válido
-        if (!_httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"))
+        // Overpass API requiere un User-Agent válido y prefiere que sea único con contacto
+        _httpClient.DefaultRequestHeaders.UserAgent.Clear();
+        if (!_httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("CampusGoApp/1.0 (USMP Student Project; https://github.com)"))
         {
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "CampusGoApp/1.0 (USMP)");
+        }
+        
+        // Agregar Accept header por si el servidor es estricto
+        if (!_httpClient.DefaultRequestHeaders.Contains("Accept"))
+        {
+            _httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
         }
     }
 
@@ -39,7 +46,7 @@ public class RestaurantesService : IRestaurantesService
 
         // Consulta en Overpass QL para restaurantes, comida rápida y cafés
         string query = $"[out:json];(node[\"amenity\"=\"restaurant\"](around:{radio},{lat},{lon});node[\"amenity\"=\"fast_food\"](around:{radio},{lat},{lon});node[\"amenity\"=\"cafe\"](around:{radio},{lat},{lon}););out center;";
-        string url = $"https://lz4.overpass-api.de/api/interpreter?data={Uri.EscapeDataString(query)}";
+        string url = $"https://overpass-api.de/api/interpreter?data={Uri.EscapeDataString(query)}";
 
         try
         {
