@@ -23,8 +23,9 @@ public class EventosService : IEventosService
     {
         var log = await _context.SincronizacionLogs.FirstOrDefaultAsync(l => l.Entidad == "Eventos");
         
-        // Si existe registro y tiene menos de 24 horas, no hacer nada (Caché vigente)
-        if (log != null && (DateTime.Now - log.UltimaSincronizacion).TotalHours < 24)
+        // Si existe registro y tiene menos de 1 hora, no hacer nada (Caché vigente)
+        // Reducido a 1 hora para evitar que datos locales en app.db interfieran con el despliegue
+        if (log != null && (DateTime.Now - log.UltimaSincronizacion).TotalHours < 1)
         {
             return;
         }
@@ -45,6 +46,7 @@ public class EventosService : IEventosService
             // Si la API key es inválida o expiró, usamos respaldo
             if (!response.IsSuccessStatusCode)
             {
+                Console.WriteLine("Error con la API de Ticketmaster. Mostrando datos de respaldo.");
                 await InsertarEventosDeRespaldo();
                 return;
             }
