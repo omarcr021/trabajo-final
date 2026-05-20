@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using trabfinal.Data;
+using trabfinal.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Data;
 
@@ -7,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IRestaurantesService, RestaurantesService>();
+builder.Services.AddScoped<IEventosService, EventosService>();
 
 // Add DbContext
 var databasePath = Path.Combine(builder.Environment.ContentRootPath, "app.db");
@@ -61,6 +65,14 @@ app.MapControllerRoute(
     pattern: "{controller=Account}/{action=Login}/{id?}")
     .WithStaticAssets();
 
+
+app.MapGet("/test-api", async (trabfinal.Services.IRestaurantesService r, trabfinal.Services.IEventosService e, trabfinal.Data.AppDbContext db) => {
+    await r.SincronizarRestaurantesAsync();
+    await e.SincronizarEventosAsync();
+    var rests = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(System.Linq.Queryable.Select(db.RestaurantesCercanos, x => x.Nombre));
+    var evs = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(System.Linq.Queryable.Select(db.Eventos, x => x.Titulo));
+    return new { Restaurantes = rests, Eventos = evs };
+});
 
 app.Run();
 

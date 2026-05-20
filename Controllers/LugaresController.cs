@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using trabfinal.Data;
 using trabfinal.Models;
+using trabfinal.Services;
 
 namespace trabfinal.Controllers;
 
@@ -12,10 +13,12 @@ namespace trabfinal.Controllers;
 public class LugaresController : Controller
 {
     private readonly AppDbContext _context;
+    private readonly IRestaurantesService _restaurantesService;
 
-    public LugaresController(AppDbContext context)
+    public LugaresController(AppDbContext context, IRestaurantesService restaurantesService)
     {
         _context = context;
+        _restaurantesService = restaurantesService;
     }
 
     private static readonly List<Lugar> Lugares = new()
@@ -25,22 +28,16 @@ public class LugaresController : Controller
         new Lugar { Id = 3, Nombre = "Plaza Central", Categoria = "Social", Direccion = "Ingreso principal del campus", Descripcion = "Punto de encuentro para estudiantes, ferias y actividades abiertas." }
     };
 
-    private static readonly List<RestauranteCercano> RestaurantesSimulados = new()
-    {
-        new RestauranteCercano { Id = 1, Nombre = "La Fontana Café", TipoComida = "Café y sánguches", Distancia = "2 min", DireccionCorta = "Av. la Fontana", Calificacion = 4.4m },
-        new RestauranteCercano { Id = 2, Nombre = "Menú Universitario", TipoComida = "Criolla", Distancia = "4 min", DireccionCorta = "Frente al campus", Calificacion = 4.1m },
-        new RestauranteCercano { Id = 3, Nombre = "Pasta Rápida", TipoComida = "Italiana", Distancia = "6 min", DireccionCorta = "Calle Los Ingenieros", Calificacion = 4.3m },
-        new RestauranteCercano { Id = 4, Nombre = "Wok Campus", TipoComida = "Oriental", Distancia = "7 min", DireccionCorta = "Av. Javier Prado", Calificacion = 4.2m },
-        new RestauranteCercano { Id = 5, Nombre = "Green Bowl", TipoComida = "Saludable", Distancia = "8 min", DireccionCorta = "La Molina", Calificacion = 4.5m },
-        new RestauranteCercano { Id = 6, Nombre = "Pizza Punto", TipoComida = "Pizzas", Distancia = "10 min", DireccionCorta = "Cerca al óvalo", Calificacion = 4.0m }
-    };
+
 
     [HttpGet("")]
     [HttpGet("Index")]
     public async Task<IActionResult> Index()
     {
+        await _restaurantesService.SincronizarRestaurantesAsync();
+
         ViewBag.UsuarioId = ObtenerUsuarioId();
-        ViewBag.Restaurantes = RestaurantesSimulados;
+        ViewBag.Restaurantes = await _context.RestaurantesCercanos.ToListAsync();
         ViewBag.ComentariosRestaurantes = await _context.ComentariosRestaurantes
             .Include(c => c.Usuario)
             .OrderByDescending(c => c.FechaPublicacion)
@@ -52,7 +49,7 @@ public class LugaresController : Controller
     [HttpPost("ComentarRestaurante/{restauranteId:int}")]
     public async Task<IActionResult> ComentarRestaurante(int restauranteId, string texto, int calificacion)
     {
-        if (!RestaurantesSimulados.Any(r => r.Id == restauranteId))
+        if (!await _context.RestaurantesCercanos.AnyAsync(r => r.Id == restauranteId))
         {
             return NotFound();
         }
@@ -118,7 +115,7 @@ public class LugaresController : Controller
             return NotFound();
         }
 
-        ViewBag.Restaurantes = RestaurantesSimulados;
+        ViewBag.Restaurantes = await _context.RestaurantesCercanos.Take(6).ToListAsync();
         ViewBag.UsuarioId = ObtenerUsuarioId();
         ViewBag.Comentarios = await _context.ComentariosLugares
             .Include(c => c.Usuario)

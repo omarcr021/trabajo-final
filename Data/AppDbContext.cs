@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<InscripcionEvento> InscripcionesEventos { get; set; }
     public DbSet<ComentarioLugar> ComentariosLugares { get; set; }
     public DbSet<ComentarioRestaurante> ComentariosRestaurantes { get; set; }
+    public DbSet<SincronizacionLog> SincronizacionLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
