@@ -11,7 +11,7 @@ using trabfinal.Data;
 namespace trabfinal.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260520150109_InitialCreate")]
+    [Migration("20260520153355_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
