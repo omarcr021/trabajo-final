@@ -32,12 +32,11 @@ public class RestaurantesService : IRestaurantesService
     {
         var log = await _context.SincronizacionLogs.FirstOrDefaultAsync(l => l.Entidad == "Restaurantes");
 
-        // Si existe registro y tiene menos de 1 hora, no hacer nada (Caché vigente)
-        // Reducido a 1 hora para evitar que la app.db local subida a github bloquee las requests
+        //Si existe registro y tiene menos de 1 hora, no hacer nada (Caché vigente)
         if (log != null && (DateTime.Now - log.UltimaSincronizacion).TotalHours < 1)
-        {
-            return;
-        }
+            {
+                return;
+            }
 
         // Coordenadas de USMP FIA (La Molina)
         string lat = "-12.0735";
@@ -91,7 +90,7 @@ public class RestaurantesService : IRestaurantesService
                         Distancia = distancia,
                         DireccionCorta = addr,
                         Calificacion = Math.Round(calificacion, 1),
-                        ImagenUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=500" // Imagen genérica por defecto
+                        ImagenUrl = $"/images/restaurantes/local-{count + 1}.jpg" // Ruta local única del 1 al 15
                     });
 
                     count++;
@@ -137,9 +136,9 @@ public class RestaurantesService : IRestaurantesService
 
         var respaldo = new List<RestauranteCercano>
         {
-            new RestauranteCercano { Nombre = "Pardos Chicken", TipoComida = "Peruvian", Distancia = "5 min", DireccionCorta = "Av. La Fontana", Calificacion = 4.5m, ImagenUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=500" },
-            new RestauranteCercano { Nombre = "Subway", TipoComida = "Sandwich", Distancia = "2 min", DireccionCorta = "Av. Javier Prado", Calificacion = 4.0m, ImagenUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=500" },
-            new RestauranteCercano { Nombre = "Chifa El Dorado", TipoComida = "Chinese", Distancia = "8 min", DireccionCorta = "Flora Tristan", Calificacion = 3.8m, ImagenUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=500" }
+            new RestauranteCercano { Nombre = "Chifa El Dorado", TipoComida = "Peruvian", Distancia = "5 min", DireccionCorta = "Av. La Fontana", Calificacion = 4.5m, ImagenUrl = "/images/restaurantes/chifaeldorado.jpg" },
+            new RestauranteCercano { Nombre = "Club Sandwich", TipoComida = "Sandwich", Distancia = "2 min", DireccionCorta = "Av. Javier Prado", Calificacion = 4.0m, ImagenUrl = "/images/restaurantes/clubsandwich.jpg" },
+            new RestauranteCercano { Nombre = "Puerto Máncora", TipoComida = "Seafood", Distancia = "8 min", DireccionCorta = "Flora Tristan", Calificacion = 3.8m, ImagenUrl = "/images/restaurantes/puertomancora.jpg" }
         };
 
         // Limpiar antiguos antes de guardar los nuevos
