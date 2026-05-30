@@ -324,6 +324,19 @@
             .sidebar { display: none; }
             .main-content { padding: 1.5rem; }
         }
+
+        .btn-filtro {
+            padding: 6px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            color: #475569;
+            transition: all 0.15s;
+        }
+        .btn-filtro:hover { background: #f1f5f9; }
+        .btn-filtro.active { background: var(--primary-dark); color: white; border-color: var(--primary-dark); }
     </style>
 </head>
 <body>
@@ -443,6 +456,14 @@
     <script>
         let tareas = [];
         let editandoId = null;
+        let filtroActual = 'todos';
+
+        function filtrar(tipo) {
+            filtroActual = tipo;
+            document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTareas();
+        }
 
         document.addEventListener('DOMContentLoaded', cargarTareas);
 
@@ -582,10 +603,17 @@
             contador.textContent = `${pendientes} pendientes, ${completadas} completadas`;
 
             const busqueda = document.getElementById('input-buscar').value.toLowerCase();
-            const tareasFiltradas = tareas.filter(t =>
-                t.titulo.toLowerCase().includes(busqueda) ||
-                (t.materia && t.materia.toLowerCase().includes(busqueda))
-            );
+            const tareasFiltradas = tareas
+                .filter(t =>
+                    t.titulo.toLowerCase().includes(busqueda) ||
+                    (t.materia && t.materia.toLowerCase().includes(busqueda))
+                )
+                .filter(t => {
+                    if (filtroActual === 'todos') return true;
+                    if (filtroActual === 'pendiente') return !t.completada;
+                    if (filtroActual === 'completada') return t.completada;
+                    return t.prioridad === filtroActual;
+                });
 
             if (tareas.length === 0) {
                 empty.style.display = 'flex';

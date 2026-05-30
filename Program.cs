@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using trabfinal.Data;
+using trabfinal.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Data;
 
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 
 // Add DbContext
 var databasePath = Path.Combine(builder.Environment.ContentRootPath, "app.db");
@@ -19,6 +21,8 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
     options.InstanceName = "proyecto_campusgo:";
 });
+
+builder.Services.AddScoped<MLService>();
 
 // Add Authentication Cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

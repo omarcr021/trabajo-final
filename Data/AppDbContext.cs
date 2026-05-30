@@ -10,6 +10,9 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<ExamenPlan> ExamenPlanes { get; set; }
+    public DbSet<Evento> Eventos { get; set; }
+    public DbSet<TipEstudio> TipsEstudio { get; set; }
     public DbSet<Tarea> Tareas { get; set; }
     public DbSet<InscripcionEvento> InscripcionesEventos { get; set; }
     public DbSet<ComentarioLugar> ComentariosLugares { get; set; }
