@@ -1,0 +1,227 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Lugares";
+    Layout = null;
+
+    var restaurantes = ViewBag.Restaurantes as List<trabfinal.Models.RestauranteCercano> ?? new List<trabfinal.Models.RestauranteCercano>();
+    var comentarios = ViewBag.ComentariosRestaurantes as List<trabfinal.Models.ComentarioRestaurante> ?? new List<trabfinal.Models.ComentarioRestaurante>();
+    var usuarioId = ViewBag.UsuarioId as int? ?? 0;
+    var cultura = new CultureInfo("es-PE");
+
+    string Estrellas(int valor) => new string('★', Math.Clamp(valor, 1, 5)) + new string('☆', 5 - Math.Clamp(valor, 1, 5));
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusGo - Lugares</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        :root { --primary:#3b82f6; --primary-dark:#2563eb; --sidebar-width:250px; --text:#1e293b; --soft:#64748b; --line:#e2e8f0; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: #fff; color: var(--text); display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-width); border-right: 1px solid #f1f5f9; display: flex; flex-direction: column; padding: 2rem 0; background: #fff; flex-shrink: 0; }
+        .sidebar-header { padding: 0 1.5rem 1.5rem; border-bottom: 1px solid #f1f5f9; }
+        .brand-name { font-size: 22px; font-weight: 700; color: var(--primary-dark); }
+        .brand-sub { font-size: 13px; color: #64748b; margin-top: 4px; }
+        .sidebar-menu { list-style: none; padding: 1.5rem 1rem; flex: 1; margin: 0; }
+        .sidebar-menu li { margin-bottom: .25rem; }
+        .sidebar-menu a { display: flex; align-items: center; padding: .85rem 1rem; color: #64748b; text-decoration: none; border-radius: 8px; font-size: 14px; transition: all .2s; gap: 12px; }
+        .sidebar-menu a:hover:not(.active) { background: #f8fafc; color: #334155; }
+        .sidebar-menu a.active { background: var(--primary); color: #fff; }
+        .menu-icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
+        .page { flex: 1; padding: 2rem; background: #f8fafc; overflow-y: auto; }
+        .page-inner { max-width: 1200px; margin: 0 auto; }
+        .top { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
+        .back { color: var(--soft); text-decoration: none; font-weight: 700; }
+        .hero { display: grid; grid-template-columns: .9fr 1.25fr; gap: 1rem; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+        .hero h1 { font-size: 30px; font-weight: 800; margin-bottom: .5rem; }
+        .hero p { color: var(--soft); line-height: 1.65; }
+        .badge-soft { display: inline-block; background: #dbeafe; color: #1d4ed8; border-radius: 999px; padding: .35rem .75rem; font-size: 12px; font-weight: 800; margin-bottom: .75rem; }
+        .map-wrap { position: relative; min-height: 330px; overflow: hidden; border-radius: 12px; border: 1px solid var(--line); }
+        .map-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .section-title { font-size: 21px; font-weight: 800; margin: 1.5rem 0 1rem; }
+        .restaurant-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .restaurant-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 1rem; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+        .restaurant-head { display: grid; grid-template-columns: 42px 1fr auto; gap: .75rem; align-items: start; }
+        .food-icon { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; background: #eff6ff; color: var(--primary); font-size: 22px; }
+        .restaurant-card h2 { font-size: 17px; font-weight: 800; margin: 0 0 .2rem; }
+        .muted { color: var(--soft); font-size: 13px; }
+        .stars { color: #f59e0b; font-weight: 800; letter-spacing: 1px; white-space: nowrap; }
+        .comment-form { display: grid; gap: .55rem; margin-top: .9rem; padding-top: .9rem; border-top: 1px solid var(--line); }
+        textarea, select { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: .65rem; font: inherit; }
+        textarea { min-height: 72px; resize: vertical; }
+        .btn { border-radius: 10px; font-weight: 800; }
+        details { margin-top: .9rem; }
+        summary { cursor: pointer; color: var(--primary); font-weight: 800; }
+        .comment { border-top: 1px solid var(--line); padding: .85rem 0; }
+        .comment:first-of-type { border-top: 0; }
+        .comment-top { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+        .comment-name { font-weight: 800; }
+        .comment p { color: var(--soft); margin: .35rem 0 .6rem; }
+        .actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+        .edit-form { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: .75rem; margin-top: .6rem; display: grid; gap: .55rem; }
+        @@media (max-width: 900px) { body { flex-direction: column; } .sidebar { width: 100%; padding: 1rem 0; } .page { padding: 1rem; } .hero, .restaurant-grid { grid-template-columns: 1fr; } .map-wrap { min-height: 260px; } .top { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-name">CampusGo</div>
+            <div class="brand-sub">Tu plataforma estudiantil</div>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/Account/Dashboard">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    Inicio
+                </a>
+            </li>
+            <li>
+                <a href="/Tareas">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    Tareas
+                </a>
+            </li>
+            <li>
+                <a href="/Lugares" class="active">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M17 3v18"></path><path d="M4 15h16"></path><path d="M3 3l18 18"></path><path d="M7 8l-4 4"></path></svg>
+                    Lugares
+                </a>
+            </li>
+            <li>
+                <a href="/Eventos">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    Eventos
+                </a>
+            </li>
+            <li>
+                <a href="/Tips">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M9 21h6"></path><path d="M11 21v-3.8c-1.3-.4-2-1.7-2-3.1 0-2 1.8-3.6 4-3.6s4 1.6 4 3.6c0 1.4-.7 2.7-2 3.1V21"></path><path d="M12 2A4 4 0 0 0 8 6"></path></svg>
+                    Tips
+                </a>
+            </li>
+            <li>
+                <a href="/Account/Perfil">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Perfil
+                </a>
+            </li>
+        </ul>
+        <div style="padding: 1rem; margin-top: auto;">
+            <a href="/Account/Logout" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:.75rem; color:#ef4444; text-decoration:none; border-radius:8px; font-size:14px; font-weight:600;">
+                <svg class="menu-icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Cerrar sesión
+            </a>
+        </div>
+    </aside>
+
+    <main class="page">
+        <div class="page-inner">
+        <div class="top">
+            <div>
+                <h1 class="fw-bold mb-1">Lugares</h1>
+                <div class="text-muted">Ubicación de FIA DATA y restaurantes cercanos.</div>
+            </div>
+            <a class="back" href="/Account/Dashboard">Volver al inicio</a>
+        </div>
+
+        <section class="hero">
+            <div>
+                <span class="badge-soft">Ubicación principal</span>
+                <h1>FIA DATA</h1>
+                <p class="mb-2">Av. la Fontana 1271, La Molina</p>
+                <p>Este mapa solo muestra dónde estamos ubicados. Las calificaciones y comentarios pertenecen a los restaurantes cercanos.</p>
+            </div>
+            <div class="map-wrap">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.5809980049717!2d-76.94655061549498!3d-12.07232411184823!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c6e7838646ed%3A0xc603c6876f84bea2!2sFIA%20DATA%2C%20Av.%20la%20Fontana%201271%2C%20La%20Molina%2015024!5e0!3m2!1ses-419!2spe!4v1777264299962!5m2!1ses-419!2spe" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </section>
+
+        <h2 class="section-title">Restaurantes cercanos</h2>
+        <section class="restaurant-grid">
+            @foreach (var restaurante in restaurantes)
+            {
+                var comentariosRestaurante = comentarios.Where(c => c.RestauranteId == restaurante.Id).ToList();
+                var promedio = comentariosRestaurante.Any()
+                    ? comentariosRestaurante.Average(c => c.Calificacion)
+                    : (double)restaurante.Calificacion;
+
+                <article class="restaurant-card">
+                    <div class="restaurant-head">
+                        <div class="food-icon">🍽</div>
+                        <div>
+                            <h2>@restaurante.Nombre</h2>
+                            <div class="muted">@restaurante.TipoComida</div>
+                            <div class="muted">@restaurante.DireccionCorta · @restaurante.Distancia desde FIA DATA</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="stars">★ @promedio.ToString("0.0", cultura)</div>
+                            <div class="muted">@comentariosRestaurante.Count comentario(s)</div>
+                        </div>
+                    </div>
+
+                    <form class="comment-form" asp-action="ComentarRestaurante" asp-route-restauranteId="@restaurante.Id" method="post">
+                        <select name="calificacion" required>
+                            <option value="5">5 estrellas</option>
+                            <option value="4">4 estrellas</option>
+                            <option value="3">3 estrellas</option>
+                            <option value="2">2 estrellas</option>
+                            <option value="1">1 estrella</option>
+                        </select>
+                        <textarea name="texto" placeholder="Comenta este restaurante..." required></textarea>
+                        <button class="btn btn-primary" type="submit">Comentar</button>
+                    </form>
+
+                    <details>
+                        <summary>Ver comentarios</summary>
+                        @if (comentariosRestaurante.Any())
+                        {
+                            @foreach (var comentario in comentariosRestaurante)
+                            {
+                                var esPropio = comentario.UsuarioId == usuarioId;
+                                <div class="comment">
+                                    <div class="comment-top">
+                                        <div>
+                                            <div class="comment-name">@comentario.Usuario?.Nombre</div>
+                                            <div class="stars">@Estrellas(comentario.Calificacion)</div>
+                                        </div>
+                                        <div class="muted">@comentario.FechaPublicacion.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt", cultura)</div>
+                                    </div>
+                                    <p>@comentario.Texto</p>
+
+                                    @if (esPropio)
+                                    {
+                                        <div class="actions">
+                                            <button class="btn btn-outline-primary btn-sm" type="button" onclick="document.getElementById('edit-rest-@comentario.Id').classList.toggle('d-none')">Editar</button>
+                                            <form asp-action="EliminarComentarioRestaurante" asp-route-id="@comentario.Id" method="post" onsubmit="return confirm('¿Eliminar comentario?')">
+                                                <button class="btn btn-outline-danger btn-sm" type="submit">Eliminar</button>
+                                            </form>
+                                        </div>
+                                        <form id="edit-rest-@comentario.Id" class="edit-form d-none" asp-action="EditarComentarioRestaurante" asp-route-id="@comentario.Id" method="post">
+                                            <select name="calificacion" required>
+                                                @for (var i = 5; i >= 1; i--)
+                                                {
+                                                    <option value="@i" selected="@(comentario.Calificacion == i)">@i estrella(s)</option>
+                                                }
+                                            </select>
+                                            <textarea name="texto" required>@comentario.Texto</textarea>
+                                            <button class="btn btn-primary btn-sm" type="submit">Guardar cambios</button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="muted mt-2">Aún no hay comentarios para este restaurante.</div>
+                        }
+                    </details>
+                </article>
+            }
+        </section>
+        </div>
+    </main>
+</body>
+</html>
