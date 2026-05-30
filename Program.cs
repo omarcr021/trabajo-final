@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IRestaurantesService, RestaurantesService>();
 builder.Services.AddScoped<IEventosService, EventosService>();
@@ -75,6 +76,8 @@ app.MapGet("/test-api", async (trabfinal.Services.IRestaurantesService r, trabfi
     var evs = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(System.Linq.Queryable.Select(db.Eventos, x => x.Titulo));
     return new { Restaurantes = rests, Eventos = evs };
 });
+
+app.MapControllers();
 
 app.Run();
 
