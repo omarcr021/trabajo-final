@@ -10,9 +10,6 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Usuario> Usuarios { get; set; }
-    public DbSet<ExamenPlan> ExamenPlanes { get; set; }
-    public DbSet<Evento> Eventos { get; set; }
-    public DbSet<TipEstudio> TipsEstudio { get; set; }
     public DbSet<Tarea> Tareas { get; set; }
     public DbSet<Evento> Eventos { get; set; }
     public DbSet<Lugar> Lugares { get; set; }
@@ -69,6 +66,7 @@ public class AppDbContext : DbContext
 
         // ExamenPlan -> Usuario
         modelBuilder.Entity<ExamenPlan>()
+            .ToTable("ExamenesPlanes")
             .HasOne(e => e.Usuario)
             .WithMany(u => u.ExamenesPlanes)
             .HasForeignKey(e => e.UsuarioId);
