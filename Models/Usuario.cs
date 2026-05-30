@@ -13,4 +13,5 @@ public class Usuario
     public ICollection<InscripcionEvento> InscripcionesEventos { get; set; } = new List<InscripcionEvento>();
     public ICollection<ComentarioLugar> ComentariosLugares { get; set; } = new List<ComentarioLugar>();
     public ICollection<ComentarioRestaurante> ComentariosRestaurantes { get; set; } = new List<ComentarioRestaurante>();
+    public ICollection<ExamenPlan> ExamenesPlanes { get; set; } = new List<ExamenPlan>();
 }

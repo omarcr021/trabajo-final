@@ -77,6 +77,115 @@ public class AccountController : Controller
         return View();
     }
 
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> Perfil()
+    {
+        var usuario = await ObtenerUsuarioActualAsync();
+        if (usuario == null)
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login");
+        }
+
+        return View(usuario);
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Perfil(
+        string nombre,
+        string? carrera,
+        string email,
+        string? passwordActual,
+        string? nuevaPassword,
+        string? confirmarPassword)
+    {
+        var usuario = await ObtenerUsuarioActualAsync();
+        if (usuario == null)
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login");
+        }
+
+        nombre = nombre?.Trim() ?? "";
+        email = email?.Trim() ?? "";
+        carrera = carrera?.Trim();
+
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            ModelState.AddModelError("", "El nombre es obligatorio.");
+        }
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            ModelState.AddModelError("", "El correo es obligatorio.");
+        }
+
+        var correoEnUso = await _context.Usuarios.AnyAsync(u => u.Email == email && u.Id != usuario.Id);
+        if (correoEnUso)
+        {
+            ModelState.AddModelError("", "El correo ya esta en uso.");
+        }
+
+        var quiereCambiarPassword = !string.IsNullOrWhiteSpace(passwordActual)
+            || !string.IsNullOrWhiteSpace(nuevaPassword)
+            || !string.IsNullOrWhiteSpace(confirmarPassword);
+
+        if (quiereCambiarPassword)
+        {
+            if (string.IsNullOrWhiteSpace(passwordActual))
+            {
+                ModelState.AddModelError("", "Ingresa tu contrasena actual.");
+            }
+            else if (passwordActual != usuario.Password)
+            {
+                ModelState.AddModelError("", "La contrasena actual no es correcta.");
+            }
+
+            if (string.IsNullOrWhiteSpace(nuevaPassword))
+            {
+                ModelState.AddModelError("", "Ingresa una nueva contrasena.");
+            }
+
+            if (string.IsNullOrWhiteSpace(confirmarPassword))
+            {
+                ModelState.AddModelError("", "Confirma la nueva contrasena.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(nuevaPassword) &&
+                !string.IsNullOrWhiteSpace(confirmarPassword) &&
+                nuevaPassword != confirmarPassword)
+            {
+                ModelState.AddModelError("", "La nueva contrasena y la confirmacion no coinciden.");
+            }
+        }
+
+        if (!ModelState.IsValid)
+        {
+            usuario.Nombre = nombre;
+            usuario.Carrera = carrera;
+            usuario.Email = email;
+            return View(usuario);
+        }
+
+        usuario.Nombre = nombre;
+        usuario.Carrera = carrera;
+        usuario.Email = email;
+
+        if (quiereCambiarPassword && !string.IsNullOrWhiteSpace(nuevaPassword))
+        {
+            usuario.Password = nuevaPassword;
+        }
+
+        await _context.SaveChangesAsync();
+        await IniciarSesionAsync(usuario);
+        TempData["PerfilMensaje"] = "Perfil actualizado correctamente.";
+
+        return RedirectToAction("Perfil");
+    }
+
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -104,5 +213,16 @@ public class AccountController : Controller
             CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(claimsIdentity),
             authProperties);
+    }
+
+    private async Task<Usuario?> ObtenerUsuarioActualAsync()
+    {
+        var userId = User.FindFirstValue("UserId");
+        if (!int.TryParse(userId, out var id))
+        {
+            return null;
+        }
+
+        return await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
     }
 }

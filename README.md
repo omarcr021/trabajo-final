@@ -1,3 +1,49 @@
-CampusGo es una plataforma web desarrollada como proyecto final del curso de Programación I. La idea principal es tener una sola aplicación donde los estudiantes puedan organizar sus tareas universitarias y también encontrar lugares o actividades cerca de su campus. Por ahora, lo que está completamente funcional es todo el flujo de autenticación: se puede crear una cuenta nueva, iniciar sesión y cerrar sesión correctamente. El login usa Cookie Authentication con ASP.NET Core, lo que significa que solo los usuarios registrados pueden entrar al sistema. También hay un dashboard principal que está protegido, o sea, si intentas entrar sin haber iniciado sesión te redirige automáticamente al login. Para guardar los datos se usa SQLite junto con Entity Framework Core, lo cual permite manejar la base de datos de forma sencilla desde el propio código en C#. Todavía hay funcionalidades en desarrollo como la gestión de tareas, recomendaciones de lugares y un módulo de eventos y tips para estudiantes.
-En cuanto a las tecnologías, el backend está hecho en C# con ASP.NET Core MVC, la base de datos es SQLite manejada con EF Core, y el frontend usa HTML5 y CSS3 con vistas Razor. El flujo básicamente funciona así: cuando te registras, el formulario manda los datos al controlador que los valida y los guarda en la base de datos; cuando inicias sesión con las credenciales correctas, el servidor crea una cookie encriptada con tu información y la manda al navegador, y esa cookie es la que te da acceso a las rutas protegidas.
-Para correr el proyecto solo hay que clonar el repositorio, entrar a la carpeta trabajo-final desde la terminal, aplicar las migraciones con dotnet ef database update si la base de datos no existe todavía, y ejecutar dotnet run. Después de eso se abre en el navegador en http://localhost:5000 o https://localhost:5001.
+# CampusGo 🎓
+
+CampusGo es una plataforma web desarrollada como proyecto final del curso de **Programación I**. Su objetivo principal es ofrecer una aplicación centralizada donde los estudiantes puedan organizar sus tareas universitarias y descubrir lugares o actividades cerca de su campus.
+
+## Características Principales
+
+Actualmente, el sistema cuenta con un flujo de autenticación completamente funcional:
+- **Gestión de Usuarios:** Registro de nuevas cuentas, inicio de sesión y cierre de sesión.
+- **Seguridad:** Autenticación basada en Cookies (`Cookie Authentication` en ASP.NET Core).
+- **Rutas Protegidas:** Dashboard principal seguro (redirige al login si no hay una sesión activa).
+    
+### En Desarrollo
+- Gestión de tareas y horarios.
+- Recomendaciones de lugares cercanos.
+- Módulo de eventos y tips para estudiantes.
+
+## Tecnologías
+
+El proyecto está construido sobre un stack robusto y moderno:
+- **Backend:** C# y ASP.NET Core MVC.
+- **Base de Datos:** SQLite gestionada a través de Entity Framework Core.
+- **Frontend:** HTML5, CSS3 y Vistas Razor (`.cshtml`).
+
+**Flujo de Autenticación:**
+1. *Registro:* El formulario envía los datos al controlador, se validan y se guardan en SQLite.
+2. *Login:* Al proporcionar credenciales correctas, el servidor genera una cookie encriptada con la información del usuario.
+3. *Sesión:* Esta cookie se envía al navegador y otorga acceso a las rutas protegidas.
+
+## Instalación y Ejecución
+
+Sigue estos pasos para correr el proyecto localmente:
+
+1. **Clonar el repositorio y acceder al directorio:**
+   ```bash
+   git clone <url-del-repositorio>
+   ```
+
+2. **Aplicar las migraciones (Crear la base de datos):**
+   ```bash
+   dotnet ef database update
+   ```
+
+3. **Ejecutar la aplicación:**
+   ```bash
+   dotnet run
+   ```
+
+4. **Abrir en el navegador:**
+   Navega a la ruta indicada en la consola, por ejemplo `http://localhost:5018` o `http://localhost:5000`.

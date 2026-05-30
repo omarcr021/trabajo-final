@@ -9,4 +9,7 @@ public class ExamenPlan
     public string Temas { get; set; } = string.Empty;
     public string Prioridad { get; set; } = string.Empty;
     public string EstadoPreparacion { get; set; } = string.Empty;
+
+    public int? UsuarioId { get; set; }
+    public Usuario? Usuario { get; set; }
 }

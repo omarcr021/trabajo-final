@@ -8,4 +8,8 @@ public class RestauranteCercano
     public string Distancia { get; set; } = string.Empty;
     public string DireccionCorta { get; set; } = string.Empty;
     public decimal Calificacion { get; set; }
+    public string? ImagenUrl { get; set; }
+
+    // Navegación inversa
+    public ICollection<ComentarioRestaurante> Comentarios { get; set; } = new List<ComentarioRestaurante>();
 }

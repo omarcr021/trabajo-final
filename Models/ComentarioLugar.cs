@@ -10,4 +10,5 @@ public class ComentarioLugar
     public DateTime FechaPublicacion { get; set; } = DateTime.UtcNow;
 
     public Usuario? Usuario { get; set; }
+    public Lugar? Lugar { get; set; }
 }

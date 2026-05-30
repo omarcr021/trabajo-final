@@ -8,4 +8,5 @@ public class InscripcionEvento
     public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
     public Usuario? Usuario { get; set; }
+    public Evento? Evento { get; set; }
 }

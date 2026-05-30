@@ -1,0 +1,609 @@
+@model trabfinal.Models.Usuario
+@{
+    ViewData["Title"] = "Perfil";
+    Layout = null;
+
+    var nombre = Model.Nombre ?? "Usuario";
+    var carrera = string.IsNullOrWhiteSpace(Model.Carrera) ? "Carrera no registrada" : Model.Carrera;
+    var iniciales = string.Join("", nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0])).ToUpper();
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusGo - Perfil</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --sidebar-width: 250px;
+            --text: #1e293b;
+            --muted: #64748b;
+            --line: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #ffffff;
+            color: #333;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            border-right: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 0;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .brand-sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1.5rem 1rem;
+            flex: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.85rem 1rem;
+            color: var(--muted);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-menu a:hover:not(.active) {
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        .sidebar-menu a.active {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .logout-wrap {
+            padding: 1rem;
+            margin-top: auto;
+        }
+
+        .logout-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.75rem;
+            color: #ef4444;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .logout-link:hover {
+            background: #fef2f2;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem 3rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .header-sub {
+            color: #94a3b8;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-light {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid var(--line);
+        }
+
+        .btn-light:hover {
+            background: #f1f5f9;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .profile-card,
+        .form-panel {
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .profile-card {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 96px;
+            height: 96px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #00b4d8);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: 800;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .profile-career {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .profile-email {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+            color: #475569;
+            font-size: 13px;
+            word-break: break-word;
+        }
+
+        .form-panel {
+            padding: 1.5rem;
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 1.25rem;
+        }
+
+        .panel-title {
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .status-pill {
+            border-radius: 999px;
+            background: #eff6ff;
+            color: var(--primary-dark);
+            padding: 0.35rem 0.7rem;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #f87171;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 11px 14px;
+            font-size: 14px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+        }
+
+        .field input:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+
+        .field input[readonly] {
+            color: #64748b;
+            cursor: default;
+        }
+
+        .hint {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .section-divider {
+            border-top: 1px solid #f1f5f9;
+            padding-top: 1rem;
+            margin-top: 0.25rem;
+        }
+
+        .subsection-title {
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .actions {
+            display: none;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .is-editing .actions {
+            display: flex;
+        }
+
+        .password-row {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 8px;
+            bottom: 7px;
+            border: 0;
+            background: #ffffff;
+            color: var(--primary-dark);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 5px 7px;
+            border-radius: 6px;
+        }
+
+        @@media (max-width: 900px) {
+            body {
+                display: block;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: 0;
+                border-bottom: 1px solid #f1f5f9;
+            }
+
+            .sidebar-menu {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.25rem;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .profile-grid,
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-name">CampusGo</div>
+            <div class="brand-sub">Tu plataforma estudiantil</div>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/Account/Dashboard">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    Inicio
+                </a>
+            </li>
+            <li>
+                <a href="/Tareas">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    Tareas
+                </a>
+            </li>
+            <li>
+                <a href="/Lugares">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M17 3v18"></path><path d="M4 15h16"></path><path d="M3 3l18 18"></path><path d="M7 8l-4 4"></path></svg>
+                    Lugares
+                </a>
+            </li>
+            <li>
+                <a href="/Eventos">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    Eventos
+                </a>
+            </li>
+            <li>
+                <a href="/Tips">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M9 21h6"></path><path d="M11 21v-3.8c-1.3-.4-2-1.7-2-3.1 0-2 1.8-3.6 4-3.6s4 1.6 4 3.6c0 1.4-.7 2.7-2 3.1V21"></path><path d="M12 2A4 4 0 0 0 8 6"></path></svg>
+                    Tips
+                </a>
+            </li>
+            <li>
+                <a href="/Account/Perfil" class="active">
+                    <svg class="menu-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Perfil
+                </a>
+            </li>
+        </ul>
+        <div class="logout-wrap">
+            <a class="logout-link" asp-action="Logout" asp-controller="Account">
+                <svg class="menu-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Cerrar sesion
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="header-title">Perfil</h1>
+                <p class="header-sub">Administra tus datos basicos de cuenta</p>
+            </div>
+            <button class="btn btn-primary" type="button" id="editButton">Editar perfil</button>
+        </div>
+
+        <div class="profile-grid">
+            <section class="profile-card">
+                <div class="avatar" id="avatar">@iniciales</div>
+                <div class="profile-name" id="previewName">@nombre</div>
+                <div class="profile-career" id="previewCareer">@carrera</div>
+                <div class="profile-email" id="previewEmail">@Model.Email</div>
+            </section>
+
+            <section class="form-panel" id="profilePanel">
+                <div class="panel-head">
+                    <div class="panel-title">Editar perfil</div>
+                    <div class="status-pill" id="statusPill">Solo lectura</div>
+                </div>
+
+                @if (TempData["PerfilMensaje"] != null)
+                {
+                    <div class="alert alert-success">@TempData["PerfilMensaje"]</div>
+                }
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-error">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div>@error.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <form method="post" asp-action="Perfil" asp-controller="Account" id="profileForm">
+                    @Html.AntiForgeryToken()
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="nombre">Nombre completo</label>
+                            <input type="text" id="nombre" name="nombre" value="@Model.Nombre" readonly required>
+                        </div>
+
+                        <div class="field">
+                            <label for="carrera">Carrera</label>
+                            <input type="text" id="carrera" name="carrera" value="@Model.Carrera" readonly>
+                        </div>
+
+                        <div class="field full">
+                            <label for="email">Correo electronico</label>
+                            <input type="email" id="email" name="email" value="@Model.Email" readonly required>
+                        </div>
+
+                        <div class="field full section-divider">
+                            <div class="subsection-title">Cambiar contrase&ntilde;a</div>
+                            <div class="hint">Completa estos campos solo si quieres actualizar tu contrase&ntilde;a.</div>
+                        </div>
+
+                        <div class="field password-row">
+                            <label for="passwordActual">Contrase&ntilde;a antigua</label>
+                            <input type="password" id="passwordActual" name="passwordActual" placeholder="Tu contrase&ntilde;a actual" readonly>
+                            <button class="toggle-password" type="button" data-target="passwordActual">Ver</button>
+                        </div>
+
+                        <div class="field password-row">
+                            <label for="nuevaPassword">Nueva contrase&ntilde;a</label>
+                            <input type="password" id="nuevaPassword" name="nuevaPassword" placeholder="Nueva contrase&ntilde;a" readonly>
+                            <button class="toggle-password" type="button" data-target="nuevaPassword">Ver</button>
+                        </div>
+
+                        <div class="field full password-row">
+                            <label for="confirmarPassword">Confirmar nueva contrase&ntilde;a</label>
+                            <input type="password" id="confirmarPassword" name="confirmarPassword" placeholder="Repite la nueva contrase&ntilde;a" readonly>
+                            <button class="toggle-password" type="button" data-target="confirmarPassword">Ver</button>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-light" type="button" id="cancelButton">Cancelar</button>
+                        <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const panel = document.getElementById('profilePanel');
+        const editButton = document.getElementById('editButton');
+        const cancelButton = document.getElementById('cancelButton');
+        const statusPill = document.getElementById('statusPill');
+        const form = document.getElementById('profileForm');
+        const inputs = Array.from(form.querySelectorAll('input'));
+        const passwordToggles = Array.from(document.querySelectorAll('.toggle-password'));
+        const nombre = document.getElementById('nombre');
+        const carrera = document.getElementById('carrera');
+        const email = document.getElementById('email');
+        const previewName = document.getElementById('previewName');
+        const previewCareer = document.getElementById('previewCareer');
+        const previewEmail = document.getElementById('previewEmail');
+        const avatar = document.getElementById('avatar');
+        const original = new FormData(form);
+
+        function initials(value) {
+            const parts = value.trim().split(/\s+/).filter(Boolean).slice(0, 2);
+            return parts.map(part => part[0]).join('').toUpperCase() || 'U';
+        }
+
+        function refreshPreview() {
+            previewName.textContent = nombre.value.trim() || 'Usuario';
+            previewCareer.textContent = carrera.value.trim() || 'Carrera no registrada';
+            previewEmail.textContent = email.value.trim();
+            avatar.textContent = initials(nombre.value);
+        }
+
+        function setEditing(enabled) {
+            panel.classList.toggle('is-editing', enabled);
+            inputs.forEach(input => input.readOnly = !enabled);
+            editButton.style.display = enabled ? 'none' : 'inline-block';
+            statusPill.textContent = enabled ? 'Editando' : 'Solo lectura';
+            if (enabled) {
+                nombre.focus();
+            }
+        }
+
+        editButton.addEventListener('click', () => setEditing(true));
+
+        cancelButton.addEventListener('click', () => {
+            inputs.forEach(input => input.value = original.get(input.name) || '');
+            passwordToggles.forEach(button => {
+                const target = document.getElementById(button.dataset.target);
+                target.type = 'password';
+                button.textContent = 'Ver';
+            });
+            refreshPreview();
+            setEditing(false);
+        });
+
+        [nombre, carrera, email].forEach(input => {
+            input.addEventListener('input', refreshPreview);
+        });
+
+        passwordToggles.forEach(button => {
+            button.addEventListener('click', () => {
+                const target = document.getElementById(button.dataset.target);
+                target.type = target.type === 'password' ? 'text' : 'password';
+                button.textContent = target.type === 'password' ? 'Ver' : 'Ocultar';
+            });
+        });
+    </script>
+</body>
+</html>

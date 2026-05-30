@@ -10,4 +10,5 @@ public class ComentarioRestaurante
     public DateTime FechaPublicacion { get; set; } = DateTime.UtcNow;
 
     public Usuario? Usuario { get; set; }
+    public RestauranteCercano? Restaurante { get; set; }
 }

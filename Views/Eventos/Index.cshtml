@@ -10,11 +10,13 @@
 
     string MostrarCategoria(string? categoria) => (categoria ?? string.Empty).Trim().ToLowerInvariant() switch
     {
-        "academico" => "Académico",
-        "social" => "Social",
-        "deportivo" => "Deportivo",
-        "administrativo" => "Administrativo",
-        _ => categoria ?? "General"
+        "conciertos" => "Conciertos",
+        "deportes" => "Deportes",
+        "teatros" => "Teatros",
+        "entretenimiento" => "Entretenimiento",
+        "culturales" => "Culturales",
+        "circos e infantiles" => "Circos e Infantiles",
+        _ => categoria ?? "Entretenimiento"
     };
 }
 <!DOCTYPE html>
@@ -283,10 +285,12 @@
             white-space: nowrap;
         }
 
-        .category-academico { background: #dbeafe; color: #1d4ed8; }
-        .category-social { background: #fce7f3; color: #be185d; }
-        .category-deportivo { background: #dcfce7; color: #15803d; }
-        .category-administrativo { background: #fef3c7; color: #a16207; }
+        .category-conciertos { background: #dbeafe; color: #1d4ed8; }
+        .category-deportes { background: #dcfce7; color: #15803d; }
+        .category-teatros { background: #fee2e2; color: #be123c; }
+        .category-entretenimiento { background: #fef3c7; color: #a16207; }
+        .category-culturales { background: #e0e7ff; color: #4338ca; }
+        .category-circos { background: #ffedd5; color: #c2410c; }
         .category-default { background: #e2e8f0; color: #334155; }
 
         .event-description {
@@ -433,10 +437,12 @@
         <section class="filters-bar">
             <div class="chip-group">
                 <button type="button" class="filter-chip active" data-category="todos">Todos</button>
-                <button type="button" class="filter-chip" data-category="Academico">Académico</button>
-                <button type="button" class="filter-chip" data-category="Social">Social</button>
-                <button type="button" class="filter-chip" data-category="Deportivo">Deportivo</button>
-                <button type="button" class="filter-chip" data-category="Administrativo">Administrativo</button>
+                <button type="button" class="filter-chip" data-category="Conciertos">Conciertos</button>
+                <button type="button" class="filter-chip" data-category="Deportes">Deportes</button>
+                <button type="button" class="filter-chip" data-category="Teatros">Teatros</button>
+                <button type="button" class="filter-chip" data-category="Entretenimiento">Entretenimiento</button>
+                <button type="button" class="filter-chip" data-category="Culturales">Culturales</button>
+                <button type="button" class="filter-chip" data-category="Circos e Infantiles">Circos e Infantiles</button>
             </div>
             <select id="timeFilter" class="form-select time-select">
                 <option value="todos">Todo el tiempo</option>
@@ -457,10 +463,12 @@
                     var categoriaNormalizada = (evento.Categoria ?? string.Empty).Trim().ToLowerInvariant();
                     var categoriaClase = categoriaNormalizada switch
                     {
-                        "academico" => "category-academico",
-                        "social" => "category-social",
-                        "deportivo" => "category-deportivo",
-                        "administrativo" => "category-administrativo",
+                        "conciertos" => "category-conciertos",
+                        "deportes" => "category-deportes",
+                        "teatros" => "category-teatros",
+                        "entretenimiento" => "category-entretenimiento",
+                        "culturales" => "category-culturales",
+                        "circos e infantiles" => "category-circos",
                         _ => "category-default"
                     };
 
