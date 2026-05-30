@@ -3,49 +3,50 @@ using trabfinal.Data;
 using trabfinal.Models;
 using trabfinal.Services;
 using Microsoft.EntityFrameworkCore;
- 
+
 namespace trabfinal.Controllers;
- 
-/// <summary>
-/// API REST para los modelos ML.NET:
-///   GET  /api/ml/riesgo/{usuarioId}          → Clasificación de riesgo académico
-///   GET  /api/ml/recomendaciones/{usuarioId} → Tips de estudio recomendados
-///   POST /api/ml/entrenar                    → Re-entrena ambos modelos
-/// </summary>
+
 [ApiController]
 [Route("api/ml")]
 public class MLController : ControllerBase
 {
     private readonly MLService _mlService;
     private readonly AppDbContext _db;
- 
+
+    // Tips y Exámenes estáticos (igual que TipsController)
+    private static readonly List<TipEstudio> TipsEstaticos = new()
+    {
+        new TipEstudio { Id=1, Titulo="Estudia en bloques de 50 minutos", Categoria="Enfoque", Descripcion="Divide tu estudio en bloques intensos con pausas cortas.", AccionRecomendada="Haz 4 bloques por sesion con descansos de 10 minutos." },
+        new TipEstudio { Id=2, Titulo="Resume cada tema en una hoja", Categoria="Comprension", Descripcion="Condensar la informacion mejora la retencion antes del examen.", AccionRecomendada="Prepara una hoja resumen por unidad o capitulo." },
+        new TipEstudio { Id=3, Titulo="Practica con preguntas reales", Categoria="Repaso", Descripcion="Resolver ejercicios tipo examen te ayuda a detectar vacios.", AccionRecomendada="Simula al menos un examen por curso cada semana." },
+        new TipEstudio { Id=4, Titulo="Explica el tema en voz alta", Categoria="Memoria", Descripcion="Si puedes explicar un tema con claridad, realmente lo entiendes.", AccionRecomendada="Ensaya como si se lo enseñaras a un compañero." },
+        new TipEstudio { Id=5, Titulo="Prioriza los cursos mas cercanos", Categoria="Planificacion", Descripcion="Ordena tu semana segun fechas y dificultad.", AccionRecomendada="Empieza por el examen mas proximo o mas complejo." },
+        new TipEstudio { Id=6, Titulo="Duerme bien la noche anterior", Categoria="Bienestar", Descripcion="Dormir mejora la consolidacion de la memoria.", AccionRecomendada="Evita trasnochar antes de un parcial." }
+    };
+
+    private static readonly List<ExamenPlan> ExamenesEstaticos = new()
+    {
+        new ExamenPlan { Id=1, Curso="Programacion", Fecha=DateTime.Today.AddDays(2), Tipo="Parcial", Temas="POO, listas", Prioridad="Alta", EstadoPreparacion="Repasar ejercicios" },
+        new ExamenPlan { Id=2, Curso="Base de Datos", Fecha=DateTime.Today.AddDays(4), Tipo="Practica", Temas="SQL, joins", Prioridad="Alta", EstadoPreparacion="Practicar consultas" },
+        new ExamenPlan { Id=3, Curso="Matematica Discreta", Fecha=DateTime.Today.AddDays(6), Tipo="Control", Temas="Logica", Prioridad="Media", EstadoPreparacion="Resolver problemas" },
+        new ExamenPlan { Id=4, Curso="Arquitectura", Fecha=DateTime.Today.AddDays(9), Tipo="Exposicion", Temas="CPU, memoria", Prioridad="Media", EstadoPreparacion="Preparar diapositivas" }
+    };
+
     public MLController(MLService mlService, AppDbContext db)
     {
         _mlService = mlService;
         _db = db;
     }
- 
-    // ──────────────────────────────────────────────
-    // GET /api/ml/riesgo/{usuarioId}
-    // ──────────────────────────────────────────────
-    /// <summary>
-    /// Predice el nivel de riesgo académico (Bajo / Medio / Alto) de un estudiante.
-    /// </summary>
+
     [HttpGet("riesgo/{usuarioId}")]
     public async Task<IActionResult> GetRiesgo(int usuarioId)
     {
         var usuario = await _db.Usuarios.FindAsync(usuarioId);
         if (usuario == null)
             return NotFound(new { mensaje = "Usuario no encontrado" });
- 
-        var examenes = await _db.ExamenPlanes
-            .Where(e => true) // en un sistema real filtrarías por usuarioId
-            .ToListAsync();
- 
-        var eventos = await _db.Eventos.ToListAsync();
- 
-        var prediccion = _mlService.PredecirRiesgo(examenes, eventos);
- 
+
+        var prediccion = _mlService.PredecirRiesgo(ExamenesEstaticos, new List<Evento>());
+
         return Ok(new
         {
             usuarioId,
@@ -60,36 +61,22 @@ public class MLController : ControllerBase
             }
         });
     }
- 
-    // ──────────────────────────────────────────────
-    // GET /api/ml/recomendaciones/{usuarioId}
-    // ──────────────────────────────────────────────
-    /// <summary>
-    /// Retorna los 3 tips de estudio más recomendados para el estudiante.
-    /// </summary>
+
     [HttpGet("recomendaciones/{usuarioId}")]
     public async Task<IActionResult> GetRecomendaciones(int usuarioId, [FromQuery] int cantidad = 3)
     {
         var usuario = await _db.Usuarios.FindAsync(usuarioId);
         if (usuario == null)
             return NotFound(new { mensaje = "Usuario no encontrado" });
- 
-        var tips = await _db.TipsEstudio.ToListAsync();
-        if (!tips.Any())
-            return Ok(new { mensaje = "No hay tips registrados aún.", recomendaciones = Array.Empty<object>() });
- 
+
         var usuarios = await _db.Usuarios.ToListAsync();
- 
-        // Obtener el nivel de riesgo actual para contexto
-        var examenes = await _db.ExamenPlanes.ToListAsync();
-        var eventos = await _db.Eventos.ToListAsync();
-        var riesgo = _mlService.PredecirRiesgo(examenes, eventos);
- 
-        var recomendaciones = _mlService.RecomendarTips(usuarioId, riesgo.NivelRiesgo, tips, usuarios, cantidad);
- 
+        var riesgo = _mlService.PredecirRiesgo(ExamenesEstaticos, new List<Evento>());
+        var recomendaciones = _mlService.RecomendarTips(usuarioId, riesgo.NivelRiesgo, TipsEstaticos, usuarios, cantidad);
+
         return Ok(new
         {
             usuarioId,
+            nombre = usuario.Nombre,
             nivelRiesgo = riesgo.NivelRiesgo,
             recomendaciones = recomendaciones.Select(r => new
             {
@@ -102,30 +89,18 @@ public class MLController : ControllerBase
             })
         });
     }
- 
-    // ──────────────────────────────────────────────
-    // POST /api/ml/entrenar
-    // ──────────────────────────────────────────────
-    /// <summary>
-    /// Re-entrena ambos modelos ML con los datos actuales de la base de datos.
-    /// </summary>
+
     [HttpPost("entrenar")]
     public async Task<IActionResult> Entrenar()
     {
-        var examenes = await _db.ExamenPlanes.ToListAsync();
-        var eventos  = await _db.Eventos.ToListAsync();
-        var tips     = await _db.TipsEstudio.ToListAsync();
         var usuarios = await _db.Usuarios.ToListAsync();
- 
-        _mlService.EntrenarModeloRiesgo(examenes, eventos);
-        _mlService.EntrenarModeloRecomendacion(tips, usuarios);
- 
+        _mlService.EntrenarModeloRiesgo(ExamenesEstaticos, new List<Evento>());
+        _mlService.EntrenarModeloRecomendacion(TipsEstaticos, usuarios);
+
         return Ok(new
         {
             mensaje = "✅ Modelos entrenados correctamente.",
-            fechaEntrenamiento = DateTime.Now,
-            examenesUsados = examenes.Count,
-            tipsUsados = tips.Count
+            fechaEntrenamiento = DateTime.Now
         });
     }
 }

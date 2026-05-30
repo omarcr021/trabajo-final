@@ -73,6 +73,7 @@ public class AccountController : Controller
     public IActionResult Dashboard()
     {
         ViewBag.Nombre = User.Identity?.Name;
+        ViewBag.UsuarioId = User.FindFirst("UserId")?.Value ?? "1"; 
         return View();
     }
 
