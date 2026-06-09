@@ -1,0 +1,115 @@
+@model trabfinal.Models.AdminLugaresViewModel
+@{
+    ViewData["Title"] = "Gestión de Lugares y Restaurantes";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-geo-alt-fill text-danger"></i> Gestión de Lugares y Restaurantes</h2>
+        <div>
+            <a asp-action="CrearLugar" class="btn btn-success"><i class="bi bi-plus-lg"></i> Nuevo Lugar</a>
+            <a asp-action="Index" class="btn btn-secondary">Volver al Dashboard</a>
+        </div>
+    </div>
+
+    <!-- LUGARES -->
+    <h4 class="mb-3"><i class="bi bi-building"></i> Lugares del Campus</h4>
+    <div class="card shadow-sm mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">Nombre</th>
+                            <th>Categoría</th>
+                            <th>Dirección</th>
+                            <th>Estado</th>
+                            <th class="text-center pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Lugares.Any())
+                        {
+                            <tr><td colspan="5" class="text-center py-4">No hay lugares registrados.</td></tr>
+                        }
+                        @foreach (var lugar in Model.Lugares)
+                        {
+                            <tr class="@(!lugar.Activo ? "table-secondary" : "")">
+                                <td class="ps-4 fw-bold">@lugar.Nombre</td>
+                                <td><span class="badge bg-warning text-dark">@lugar.Categoria</span></td>
+                                <td>@lugar.Direccion</td>
+                                <td>
+                                    <form asp-action="ToggleLugarActivo" asp-route-id="@lugar.Id" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm @(lugar.Activo ? "btn-success" : "btn-outline-secondary")">
+                                            <i class="bi @(lugar.Activo ? "bi-eye-fill" : "bi-eye-slash")"></i> @(lugar.Activo ? "Activo" : "Inactivo")
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="EditarLugar" asp-route-id="@lugar.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form asp-action="EliminarLugar" asp-route-id="@lugar.Id" method="post" style="display:inline-block;" onsubmit="return confirm('¿Eliminar este lugar permanentemente?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESTAURANTES -->
+    <h4 class="mb-3"><i class="bi bi-shop"></i> Restaurantes Cercanos</h4>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">Nombre</th>
+                            <th>Tipo Comida</th>
+                            <th>Distancia</th>
+                            <th>Calificación</th>
+                            <th>Estado</th>
+                            <th class="text-center pe-4">Visibilidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Restaurantes.Any())
+                        {
+                            <tr><td colspan="6" class="text-center py-4">No hay restaurantes sincronizados.</td></tr>
+                        }
+                        @foreach (var rest in Model.Restaurantes)
+                        {
+                            <tr class="@(!rest.Activo ? "table-secondary" : "")">
+                                <td class="ps-4 fw-bold">@rest.Nombre</td>
+                                <td>@rest.TipoComida</td>
+                                <td>@rest.Distancia</td>
+                                <td>
+                                    <span class="badge bg-warning text-dark">⭐ @rest.Calificacion</span>
+                                </td>
+                                <td>
+                                    <span class="badge @(rest.Activo ? "bg-success" : "bg-secondary")">@(rest.Activo ? "Visible" : "Oculto")</span>
+                                </td>
+                                <td class="text-center pe-4">
+                                    <form asp-action="ToggleRestauranteActivo" asp-route-id="@rest.Id" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm @(rest.Activo ? "btn-outline-secondary" : "btn-outline-success")" title="@(rest.Activo ? "Ocultar" : "Mostrar")">
+                                            <i class="bi @(rest.Activo ? "bi-eye-slash" : "bi-eye")"></i> @(rest.Activo ? "Ocultar" : "Mostrar")
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

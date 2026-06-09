@@ -1,0 +1,52 @@
+@model trabfinal.Models.Usuario
+@{
+    ViewData["Title"] = "Editar Usuario";
+}
+
+<div class="container mt-4">
+    <h2>Editar Usuario - @Model.Nombre</h2>
+    <hr />
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="EditarUsuario" method="post">
+                <input type="hidden" asp-for="Id" />
+                
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" value="@Model.Nombre" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="@Model.Email" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="carrera" class="form-label">Carrera (opcional)</label>
+                    <input type="text" class="form-control" id="carrera" name="carrera" value="@Model.Carrera" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="rol" class="form-label">Rol del Usuario</label>
+                    <select class="form-select" id="rol" name="rol">
+                        @if(Model.Rol == "Admin")
+                        {
+                            <option value="Admin" selected>Administrador</option>
+                            <option value="Usuario">Usuario Normal</option>
+                        }
+                        else
+                        {
+                            <option value="Admin">Administrador</option>
+                            <option value="Usuario" selected>Usuario Normal</option>
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <a asp-action="Usuarios" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>

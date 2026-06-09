@@ -1,0 +1,62 @@
+@model IEnumerable<trabfinal.Models.Usuario>
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-people-fill"></i> Gestión de Usuarios</h2>
+        <div>
+            <a asp-action="ExportarUsuariosExcel" class="btn btn-success"><i class="bi bi-file-earmark-excel"></i> Descargar Excel</a>
+            <a asp-action="ExportarUsuariosCsv" class="btn btn-outline-success"><i class="bi bi-filetype-csv"></i> Descargar CSV</a>
+            <a asp-action="Index" class="btn btn-secondary">Volver al Dashboard</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Carrera</th>
+                            <th>Fecha Registro</th>
+                            <th class="text-center pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">@user.Id</td>
+                                <td class="fw-bold">@user.Nombre</td>
+                                <td>@user.Email</td>
+                                <td>
+                                    <span class="badge @(user.Rol == "Admin" ? "bg-danger" : "bg-primary")">@user.Rol</span>
+                                </td>
+                                <td>@(user.Carrera ?? "—")</td>
+                                <td><small class="text-muted">@user.FechaCreacion.ToString("dd/MM/yyyy")</small></td>
+                                <td class="text-center pe-4">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="EditarUsuario" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form asp-action="EliminarUsuario" asp-route-id="@user.Id" method="post" style="display:inline-block;" onsubmit="return confirm('¿Está seguro de eliminar a este usuario?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

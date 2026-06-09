@@ -9,6 +9,7 @@ public class RestauranteCercano
     public string DireccionCorta { get; set; } = string.Empty;
     public decimal Calificacion { get; set; }
     public string? ImagenUrl { get; set; }
+    public bool Activo { get; set; } = true;
 
     // Navegación inversa
     public ICollection<ComentarioRestaurante> Comentarios { get; set; } = new List<ComentarioRestaurante>();

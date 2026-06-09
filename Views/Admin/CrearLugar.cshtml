@@ -1,0 +1,59 @@
+@model trabfinal.Models.Lugar
+@{
+    ViewData["Title"] = "Crear Lugar";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm mx-auto" style="max-width: 700px;">
+        <div class="card-header bg-white">
+            <h3 class="card-title my-2"><i class="bi bi-geo-alt-fill"></i> Crear Nuevo Lugar</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="CrearLugar" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Nombre" class="form-label fw-bold">Nombre</label>
+                    <input asp-for="Nombre" class="form-control" placeholder="Ej. Biblioteca Central" required />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Categoria" class="form-label fw-bold">Categoría</label>
+                        <select asp-for="Categoria" class="form-select" required>
+                            <option value="">Selecciona...</option>
+                            <option value="Académico">Académico</option>
+                            <option value="Estudio">Estudio</option>
+                            <option value="Social">Social</option>
+                            <option value="Deportivo">Deportivo</option>
+                            <option value="Servicios">Servicios</option>
+                        </select>
+                        <span asp-validation-for="Categoria" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Direccion" class="form-label fw-bold">Dirección</label>
+                        <input asp-for="Direccion" class="form-control" placeholder="Ej. Campus principal" required />
+                        <span asp-validation-for="Direccion" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Descripcion" class="form-label fw-bold">Descripción</label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Describe el lugar..." required></textarea>
+                    <span asp-validation-for="Descripcion" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ImagenUrl" class="form-label fw-bold">URL de Imagen (opcional)</label>
+                    <input asp-for="ImagenUrl" class="form-control" placeholder="https://..." />
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a asp-action="Lugares" class="btn btn-light border">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Crear Lugar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

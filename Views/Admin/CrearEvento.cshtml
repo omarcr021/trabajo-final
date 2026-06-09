@@ -1,0 +1,73 @@
+@model trabfinal.Models.Evento
+@{
+    ViewData["Title"] = "Crear Evento";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm mx-auto" style="max-width: 700px;">
+        <div class="card-header bg-white">
+            <h3 class="card-title my-2"><i class="bi bi-calendar-plus"></i> Crear Nuevo Evento</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="CrearEvento" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Titulo" class="form-label fw-bold">Título</label>
+                    <input asp-for="Titulo" class="form-control" placeholder="Ej. Hackathon Universitario" required />
+                    <span asp-validation-for="Titulo" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Categoria" class="form-label fw-bold">Categoría</label>
+                        <select asp-for="Categoria" class="form-select" required>
+                            <option value="">Selecciona...</option>
+                            <option value="Culturales">Culturales</option>
+                            <option value="Deportes">Deportes</option>
+                            <option value="Conciertos">Conciertos</option>
+                            <option value="Teatros">Teatros</option>
+                            <option value="Entretenimiento">Entretenimiento</option>
+                            <option value="Circos e Infantiles">Circos e Infantiles</option>
+                        </select>
+                        <span asp-validation-for="Categoria" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Ubicacion" class="form-label fw-bold">Ubicación</label>
+                        <input asp-for="Ubicacion" class="form-control" placeholder="Ej. Auditorio Principal" required />
+                        <span asp-validation-for="Ubicacion" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FechaInicio" class="form-label fw-bold">Fecha Inicio</label>
+                        <input asp-for="FechaInicio" type="datetime-local" class="form-control" required />
+                        <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FechaFin" class="form-label fw-bold">Fecha Fin</label>
+                        <input asp-for="FechaFin" type="datetime-local" class="form-control" required />
+                        <span asp-validation-for="FechaFin" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Descripcion" class="form-label fw-bold">Descripción</label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Describe el evento..." required></textarea>
+                    <span asp-validation-for="Descripcion" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ImagenUrl" class="form-label fw-bold">URL de Imagen (opcional)</label>
+                    <input asp-for="ImagenUrl" class="form-control" placeholder="https://..." />
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a asp-action="Eventos" class="btn btn-light border">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Crear Evento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
