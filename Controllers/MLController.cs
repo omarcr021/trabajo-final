@@ -71,12 +71,17 @@ public class MLController : ControllerBase
         var examenes = await ObtenerExamenesAsync();
         var prediccion = _mlService.PredecirRiesgo(examenes, new List<Evento>());
 
+        // Sanitizar scores: NaN/Infinity no se pueden serializar a JSON
+        var safeScores = prediccion.Score
+            .Select(s => float.IsNaN(s) || float.IsInfinity(s) ? 0f : s)
+            .ToArray();
+
         return Ok(new
         {
             usuarioId,
             nombre = usuario.Nombre,
             nivelRiesgo = prediccion.NivelRiesgo,
-            scores = prediccion.Score,
+            scores = safeScores,
             descripcion = prediccion.NivelRiesgo switch
             {
                 "Alto"  => "⚠️ Atención: tienes varios exámenes próximos con baja preparación.",
