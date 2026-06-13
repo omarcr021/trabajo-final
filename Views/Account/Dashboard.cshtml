@@ -398,6 +398,69 @@
             </div>
         </div>
 
+        <!-- Chatbot Agente IA -->
+        <h2 class="section-title">💬 Asistente académico IA</h2>
+        <div style="background:#fff; border:1px solid #f1f5f9; border-radius:12px; padding:1.5rem; box-shadow:0 2px 5px rgba(0,0,0,0.02); margin-bottom:2rem;">
+            <div id="chat-mensajes" style="min-height:120px; max-height:200px; overflow-y:auto; margin-bottom:1rem; display:flex; flex-direction:column; gap:0.75rem;">
+                <div style="font-size:13px; color:#94a3b8;">Hola! Pregúntame sobre técnicas de estudio, organización o cómo prepararte para tus exámenes 👋</div>
+            </div>
+            <div style="display:flex; gap:0.75rem;">
+                <input id="chat-input" type="text" placeholder="Escribe tu pregunta..." 
+                    style="flex:1; padding:0.75rem 1rem; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; outline:none;"
+                    onkeydown="if(event.key==='Enter') enviarMensaje()" />
+                <button onclick="enviarMensaje()" 
+                    style="background:#3b82f6; color:#fff; border:none; border-radius:8px; padding:0.75rem 1.25rem; font-size:13px; cursor:pointer;">
+                    Enviar
+                </button>
+            </div>
+        </div>
+
+        <script>
+            let nivelRiesgoActual = 'Medio';
+
+            async function enviarMensaje() {
+                const input = document.getElementById('chat-input');
+                const mensajes = document.getElementById('chat-mensajes');
+                const mensaje = input.value.trim();
+                if (!mensaje) return;
+
+                input.value = '';
+
+                // Mensaje del usuario
+                mensajes.innerHTML += `
+                    <div style="align-self:flex-end; background:#3b82f6; color:#fff; padding:8px 14px; border-radius:12px 12px 2px 12px; font-size:13px; max-width:80%;">
+                        ${mensaje}
+                    </div>`;
+                mensajes.scrollTop = mensajes.scrollHeight;
+
+                // Llamar al agente
+                try {
+                    const res = await fetch('/api/agente/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mensaje, nivelRiesgo: nivelRiesgoActual })
+                    });
+                    const data = await res.json();
+
+                    mensajes.innerHTML += `
+                        <div style="align-self:flex-start; background:#f1f5f9; color:#1e293b; padding:8px 14px; border-radius:12px 12px 12px 2px; font-size:13px; max-width:80%;">
+                            🤖 ${data.respuesta}
+                        </div>`;
+                    mensajes.scrollTop = mensajes.scrollHeight;
+                } catch(e) {
+                    mensajes.innerHTML += `<div style="font-size:12px; color:#ef4444;">Error al conectar con el asistente.</div>`;
+                }
+            }
+
+            // Capturar el nivel de riesgo cuando carga el ML
+            const _cargarMLOriginal = cargarML;
+            async function cargarML() {
+                await _cargarMLOriginal();
+                const riesgoEl = document.getElementById('riesgo-nivel');
+                if (riesgoEl) nivelRiesgoActual = riesgoEl.textContent.trim().replace(/[⚠️📊✅]/g, '').trim();
+            }
+        </script>
+
         <!-- Banner de frase -->
         <div class="quote-banner">
             <div class="quote-text">💪 "El éxito es la suma de pequeños esfuerzos repetidos día tras día"</div>
@@ -406,7 +469,7 @@
     </main>
 
     <script>
-        const usuarioId = @(ViewBag.UsuarioId ?? 1);
+        const usuarioId = parseInt('@(ViewBag.UsuarioId ?? "1")');
 
         async function cargarML() {
             try {
