@@ -111,7 +111,7 @@ public class MLController : ControllerBase
                 categoria = r.Tip.Categoria,
                 descripcion = r.Tip.Descripcion,
                 accionRecomendada = r.Tip.AccionRecomendada,
-                scoreRelevancia = Math.Round(r.Score, 2)
+                scoreRelevancia = float.IsFinite(r.Score) ? Math.Round(r.Score, 2) : 0
             })
         });
     }

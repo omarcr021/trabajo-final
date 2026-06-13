@@ -26,6 +26,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 
 builder.Services.AddScoped<MLService>();
+builder.Services.AddScoped<AgenteChatService>();
 
 // Add Authentication Cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

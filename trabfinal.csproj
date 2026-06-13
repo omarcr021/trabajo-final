@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.7" />
     <PackageReference Include="Microsoft.ML" Version="3.0.1" />
     <PackageReference Include="Microsoft.ML.Recommender" Version="0.21.1" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.29.0" />
     <PackageReference Include="ClosedXML" Version="0.104.2" />
   </ItemGroup>
 
