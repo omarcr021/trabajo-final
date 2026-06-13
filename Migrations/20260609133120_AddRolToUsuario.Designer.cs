@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using trabfinal.Data;
 
@@ -10,9 +11,11 @@ using trabfinal.Data;
 namespace trabfinal.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609133120_AddRolToUsuario")]
+    partial class AddRolToUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
@@ -83,9 +86,6 @@ namespace trabfinal.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Categoria")
@@ -188,9 +188,6 @@ namespace trabfinal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("Activo")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Categoria")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -219,9 +216,6 @@ namespace trabfinal.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("Calificacion")
@@ -349,9 +343,6 @@ namespace trabfinal.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Nombre")

@@ -47,6 +47,10 @@ public class AccountController : Controller
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
             await IniciarSesionAsync(usuario);
+            
+            if (usuario.Rol == "Admin")
+                return RedirectToAction("Index", "Admin");
+
             return RedirectToAction("Dashboard");
         }
         return View(usuario);
@@ -61,6 +65,9 @@ public class AccountController : Controller
         if (usuario != null)
         {
             await IniciarSesionAsync(usuario);
+
+            if (usuario.Rol == "Admin")
+                return RedirectToAction("Index", "Admin");
 
             return RedirectToAction("Dashboard");
         }
@@ -199,7 +206,8 @@ public class AccountController : Controller
             new Claim(ClaimTypes.Name, usuario.Nombre),
             new Claim(ClaimTypes.Email, usuario.Email),
             new Claim("Carrera", usuario.Carrera ?? ""),
-            new Claim("UserId", usuario.Id.ToString())
+            new Claim("UserId", usuario.Id.ToString()),
+            new Claim(ClaimTypes.Role, usuario.Rol ?? "Usuario")
         };
 
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -45,6 +45,7 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
     EnsureTareasUsuarioIdColumn(dbContext);
+    FixDefaultValues(dbContext);
 }
 
 // Configure the HTTP request pipeline.
@@ -122,4 +123,28 @@ static void EnsureTareasUsuarioIdColumn(AppDbContext dbContext)
     using var indexCommand = connection.CreateCommand();
     indexCommand.CommandText = "CREATE INDEX IF NOT EXISTS IX_Tareas_UsuarioId ON Tareas (UsuarioId);";
     indexCommand.ExecuteNonQuery();
+}
+
+static void FixDefaultValues(AppDbContext dbContext)
+{
+    var connection = dbContext.Database.GetDbConnection();
+    if (connection.State != System.Data.ConnectionState.Open)
+    {
+        connection.Open();
+    }
+
+    string[] fixSqls = new[]
+    {
+        "UPDATE Eventos SET Activo = 1 WHERE Activo = 0;",
+        "UPDATE Lugares SET Activo = 1 WHERE Activo = 0;",
+        "UPDATE RestaurantesCercanos SET Activo = 1 WHERE Activo = 0;",
+        "UPDATE Usuarios SET FechaCreacion = datetime('now') WHERE FechaCreacion = '0001-01-01 00:00:00';"
+    };
+
+    foreach (var sql in fixSqls)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.ExecuteNonQuery();
+    }
 }

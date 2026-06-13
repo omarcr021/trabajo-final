@@ -1,0 +1,153 @@
+@model trabfinal.Models.AuditoriaViewModel
+@{
+    ViewData["Title"] = "Auditoría del Sistema";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-shield-check text-primary"></i> Auditoría del Sistema</h2>
+        <a asp-action="Index" class="btn btn-secondary">Volver al Dashboard</a>
+    </div>
+
+    <!-- Estadísticas del Sistema -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill text-primary display-6"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalUsuarios</h3>
+                    <small class="text-muted">Usuarios Registrados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-event text-success display-6"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalEventos</h3>
+                    <small class="text-muted">Eventos (@Model.EventosActivos activos)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="bi bi-geo-alt-fill text-warning display-6"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalLugares</h3>
+                    <small class="text-muted">Lugares (@Model.LugaresActivos activos)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="bi bi-shop text-info display-6"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalRestaurantes</h3>
+                    <small class="text-muted">Restaurantes (@Model.RestaurantesActivos activos)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs de Sincronización -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> Logs de Sincronización</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">Entidad</th>
+                            <th>Última Sincronización</th>
+                            <th>Tiempo Transcurrido</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Logs.Any())
+                        {
+                            <tr><td colspan="4" class="text-center py-4">No hay registros de sincronización.</td></tr>
+                        }
+                        @foreach (var log in Model.Logs)
+                        {
+                            var tiempoTranscurrido = DateTime.Now - log.UltimaSincronizacion;
+                            var esReciente = tiempoTranscurrido.TotalHours < 2;
+                            <tr>
+                                <td class="ps-4">
+                                    <i class="bi @(log.Entidad == "Eventos" ? "bi-calendar-event" : "bi-shop") text-primary"></i>
+                                    <strong>@log.Entidad</strong>
+                                </td>
+                                <td>@log.UltimaSincronizacion.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td>
+                                    @if (tiempoTranscurrido.TotalMinutes < 60)
+                                    {
+                                        <span>Hace @((int)tiempoTranscurrido.TotalMinutes) minutos</span>
+                                    }
+                                    else if (tiempoTranscurrido.TotalHours < 24)
+                                    {
+                                        <span>Hace @((int)tiempoTranscurrido.TotalHours) horas</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Hace @((int)tiempoTranscurrido.TotalDays) días</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @(esReciente ? "bg-success" : "bg-warning text-dark")">
+                                        <i class="bi @(esReciente ? "bi-check-circle" : "bi-exclamation-triangle")"></i>
+                                        @(esReciente ? "Sincronizado" : "Desactualizado")
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info del Sistema -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información del Sistema</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Tips de Estudio</span>
+                            <strong>@Model.TotalTips</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Tareas Registradas</span>
+                            <strong>@Model.TotalTareas</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Planes de Exámenes</span>
+                            <strong>@Model.TotalExamenes</strong>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Inscripciones a Eventos</span>
+                            <strong>@Model.TotalInscripciones</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Comentarios (Lugares)</span>
+                            <strong>@Model.TotalComentariosLugares</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Comentarios (Restaurantes)</span>
+                            <strong>@Model.TotalComentariosRestaurantes</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

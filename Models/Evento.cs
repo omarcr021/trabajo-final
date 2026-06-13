@@ -12,6 +12,7 @@ public class Evento
     public string Ubicacion { get; set; } = string.Empty;
     public string Descripcion { get; set; } = string.Empty;
     public string? ImagenUrl { get; set; }
+    public bool Activo { get; set; } = true;
 
     // Navegación inversa
     public ICollection<InscripcionEvento> Inscripciones { get; set; } = new List<InscripcionEvento>();

@@ -15,20 +15,38 @@ public class LugaresController : Controller
     private readonly AppDbContext _context;
     private readonly IRestaurantesService _restaurantesService;
 
+    // Datos de fallback para seed inicial de Lugares en DB
+    private static readonly List<Lugar> LugaresFallback = new()
+    {
+        new Lugar { Nombre = "FIA DATA", Categoria = "Académico", Direccion = "Av. la Fontana 1271, La Molina", Descripcion = "Espacio universitario de tecnología, clases, investigación y actividades académicas.", Activo = true },
+        new Lugar { Nombre = "Biblioteca Central", Categoria = "Estudio", Direccion = "Campus principal", Descripcion = "Zona tranquila para estudiar, revisar materiales y trabajar en equipo.", Activo = true },
+        new Lugar { Nombre = "Plaza Central", Categoria = "Social", Direccion = "Ingreso principal del campus", Descripcion = "Punto de encuentro para estudiantes, ferias y actividades abiertas.", Activo = true }
+    };
+
     public LugaresController(AppDbContext context, IRestaurantesService restaurantesService)
     {
         _context = context;
         _restaurantesService = restaurantesService;
     }
 
-    private static readonly List<Lugar> Lugares = new()
+    /// <summary>
+    /// Obtiene los lugares desde la DB. Si está vacía, hace seed con los datos de fallback.
+    /// </summary>
+    private async Task<List<Lugar>> ObtenerLugaresAsync(bool soloActivos = true)
     {
-        new Lugar { Id = 1, Nombre = "FIA DATA", Categoria = "Académico", Direccion = "Av. la Fontana 1271, La Molina", Descripcion = "Espacio universitario de tecnología, clases, investigación y actividades académicas." },
-        new Lugar { Id = 2, Nombre = "Biblioteca Central", Categoria = "Estudio", Direccion = "Campus principal", Descripcion = "Zona tranquila para estudiar, revisar materiales y trabajar en equipo." },
-        new Lugar { Id = 3, Nombre = "Plaza Central", Categoria = "Social", Direccion = "Ingreso principal del campus", Descripcion = "Punto de encuentro para estudiantes, ferias y actividades abiertas." }
-    };
+        var lugares = soloActivos
+            ? await _context.Lugares.Where(l => l.Activo).ToListAsync()
+            : await _context.Lugares.ToListAsync();
 
+        if (!await _context.Lugares.AnyAsync())
+        {
+            _context.Lugares.AddRange(LugaresFallback);
+            await _context.SaveChangesAsync();
+            lugares = await _context.Lugares.Where(l => l.Activo).ToListAsync();
+        }
 
+        return lugares;
+    }
 
     [HttpGet("")]
     [HttpGet("Index")]
@@ -37,7 +55,7 @@ public class LugaresController : Controller
         await _restaurantesService.SincronizarRestaurantesAsync();
 
         ViewBag.UsuarioId = ObtenerUsuarioId();
-        ViewBag.Restaurantes = await _context.RestaurantesCercanos.ToListAsync();
+        ViewBag.Restaurantes = await _context.RestaurantesCercanos.Where(r => r.Activo).ToListAsync();
         ViewBag.ComentariosRestaurantes = await _context.ComentariosRestaurantes
             .Include(c => c.Usuario)
             .OrderByDescending(c => c.FechaPublicacion)
@@ -109,13 +127,14 @@ public class LugaresController : Controller
     [HttpGet("Details/{id:int}")]
     public async Task<IActionResult> Details(int id)
     {
-        var lugar = Lugares.FirstOrDefault(l => l.Id == id);
+        // Ahora lee desde DB en vez de lista estática
+        var lugar = await _context.Lugares.FirstOrDefaultAsync(l => l.Id == id && l.Activo);
         if (lugar is null)
         {
             return NotFound();
         }
 
-        ViewBag.Restaurantes = await _context.RestaurantesCercanos.Take(6).ToListAsync();
+        ViewBag.Restaurantes = await _context.RestaurantesCercanos.Where(r => r.Activo).Take(6).ToListAsync();
         ViewBag.UsuarioId = ObtenerUsuarioId();
         ViewBag.Comentarios = await _context.ComentariosLugares
             .Include(c => c.Usuario)
@@ -129,7 +148,7 @@ public class LugaresController : Controller
     [HttpPost("Comentar/{lugarId:int}")]
     public async Task<IActionResult> Comentar(int lugarId, string texto, int calificacion)
     {
-        if (!Lugares.Any(l => l.Id == lugarId))
+        if (!await _context.Lugares.AnyAsync(l => l.Id == lugarId))
         {
             return NotFound();
         }

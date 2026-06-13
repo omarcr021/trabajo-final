@@ -35,7 +35,7 @@ public class EventosController : Controller
             .Select(i => i.EventoId)
             .ToListAsync();
 
-        var eventos = await _context.Eventos.OrderBy(e => e.FechaInicio).ToListAsync();
+        var eventos = await _context.Eventos.Where(e => e.Activo).OrderBy(e => e.FechaInicio).ToListAsync();
         return View(eventos);
     }
 

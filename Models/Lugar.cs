@@ -8,6 +8,7 @@ public class Lugar
     public string Direccion { get; set; } = string.Empty;
     public string Categoria { get; set; } = string.Empty;
     public string? ImagenUrl { get; set; }
+    public bool Activo { get; set; } = true;
 
     // Navegación inversa
     public ICollection<ComentarioLugar> Comentarios { get; set; } = new List<ComentarioLugar>();

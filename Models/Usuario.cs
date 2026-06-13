@@ -7,6 +7,8 @@ public class Usuario
     public string? Carrera { get; set; }
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public string Rol { get; set; } = "Usuario";
+    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
     // Colección de tareas del usuario
     public ICollection<Tarea> Tareas { get; set; } = new List<Tarea>();

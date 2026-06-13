@@ -13,8 +13,8 @@ public class MLController : ControllerBase
     private readonly MLService _mlService;
     private readonly AppDbContext _db;
 
-    // Tips y Exámenes estáticos (igual que TipsController)
-    private static readonly List<TipEstudio> TipsEstaticos = new()
+    // Tips y Exámenes estáticos de fallback (se usan solo si la DB está vacía)
+    private static readonly List<TipEstudio> TipsFallback = new()
     {
         new TipEstudio { Id=1, Titulo="Estudia en bloques de 50 minutos", Categoria="Enfoque", Descripcion="Divide tu estudio en bloques intensos con pausas cortas.", AccionRecomendada="Haz 4 bloques por sesion con descansos de 10 minutos." },
         new TipEstudio { Id=2, Titulo="Resume cada tema en una hoja", Categoria="Comprension", Descripcion="Condensar la informacion mejora la retencion antes del examen.", AccionRecomendada="Prepara una hoja resumen por unidad o capitulo." },
@@ -24,7 +24,7 @@ public class MLController : ControllerBase
         new TipEstudio { Id=6, Titulo="Duerme bien la noche anterior", Categoria="Bienestar", Descripcion="Dormir mejora la consolidacion de la memoria.", AccionRecomendada="Evita trasnochar antes de un parcial." }
     };
 
-    private static readonly List<ExamenPlan> ExamenesEstaticos = new()
+    private static readonly List<ExamenPlan> ExamenesFallback = new()
     {
         new ExamenPlan { Id=1, Curso="Programacion", Fecha=DateTime.Today.AddDays(2), Tipo="Parcial", Temas="POO, listas", Prioridad="Alta", EstadoPreparacion="Repasar ejercicios" },
         new ExamenPlan { Id=2, Curso="Base de Datos", Fecha=DateTime.Today.AddDays(4), Tipo="Practica", Temas="SQL, joins", Prioridad="Alta", EstadoPreparacion="Practicar consultas" },
@@ -38,6 +38,29 @@ public class MLController : ControllerBase
         _db = db;
     }
 
+    /// <summary>
+    /// Obtiene tips y exámenes desde la DB, con fallback a datos estáticos si la DB está vacía.
+    /// Si la DB está vacía, hace seed automáticamente.
+    /// </summary>
+    private async Task<List<TipEstudio>> ObtenerTipsAsync()
+    {
+        var tips = await _db.TipsEstudio.ToListAsync();
+        if (!tips.Any())
+        {
+            // Seed: insertar tips de fallback en la DB
+            _db.TipsEstudio.AddRange(TipsFallback);
+            await _db.SaveChangesAsync();
+            tips = await _db.TipsEstudio.ToListAsync();
+        }
+        return tips;
+    }
+
+    private async Task<List<ExamenPlan>> ObtenerExamenesAsync()
+    {
+        var examenes = await _db.ExamenesPlanes.ToListAsync();
+        return examenes.Any() ? examenes : ExamenesFallback;
+    }
+
     [HttpGet("riesgo/{usuarioId}")]
     public async Task<IActionResult> GetRiesgo(int usuarioId)
     {
@@ -45,7 +68,8 @@ public class MLController : ControllerBase
         if (usuario == null)
             return NotFound(new { mensaje = "Usuario no encontrado" });
 
-        var prediccion = _mlService.PredecirRiesgo(ExamenesEstaticos, new List<Evento>());
+        var examenes = await ObtenerExamenesAsync();
+        var prediccion = _mlService.PredecirRiesgo(examenes, new List<Evento>());
 
         return Ok(new
         {
@@ -69,9 +93,11 @@ public class MLController : ControllerBase
         if (usuario == null)
             return NotFound(new { mensaje = "Usuario no encontrado" });
 
+        var tips = await ObtenerTipsAsync();
+        var examenes = await ObtenerExamenesAsync();
         var usuarios = await _db.Usuarios.ToListAsync();
-        var riesgo = _mlService.PredecirRiesgo(ExamenesEstaticos, new List<Evento>());
-        var recomendaciones = _mlService.RecomendarTips(usuarioId, riesgo.NivelRiesgo, TipsEstaticos, usuarios, cantidad);
+        var riesgo = _mlService.PredecirRiesgo(examenes, new List<Evento>());
+        var recomendaciones = _mlService.RecomendarTips(usuarioId, riesgo.NivelRiesgo, tips, usuarios, cantidad);
 
         return Ok(new
         {
@@ -93,14 +119,19 @@ public class MLController : ControllerBase
     [HttpPost("entrenar")]
     public async Task<IActionResult> Entrenar()
     {
+        var tips = await ObtenerTipsAsync();
+        var examenes = await ObtenerExamenesAsync();
         var usuarios = await _db.Usuarios.ToListAsync();
-        _mlService.EntrenarModeloRiesgo(ExamenesEstaticos, new List<Evento>());
-        _mlService.EntrenarModeloRecomendacion(TipsEstaticos, usuarios);
+        
+        _mlService.EntrenarModeloRiesgo(examenes, new List<Evento>());
+        _mlService.EntrenarModeloRecomendacion(tips, usuarios);
 
         return Ok(new
         {
             mensaje = "✅ Modelos entrenados correctamente.",
-            fechaEntrenamiento = DateTime.Now
+            fechaEntrenamiento = DateTime.Now,
+            tipsUsados = tips.Count,
+            usuariosUsados = usuarios.Count
         });
     }
 }
