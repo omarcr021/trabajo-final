@@ -191,12 +191,17 @@ public class MLService
         var resultados = todosLosTips
             .Select(tip =>
             {
-                var score = engine.Predict(new TipRecomendacionInput
+                var pred = engine.Predict(new TipRecomendacionInput
                 {
                     UsuarioId = usuarioId,
                     TipId = tip.Id
                 });
-                return (Tip: tip, Score: score.Score);
+                // Sanitizar scores: NaN/Infinity ocurren cuando el usuario
+                // no estaba en los datos de entrenamiento del modelo
+                var safeScore = float.IsNaN(pred.Score) || float.IsInfinity(pred.Score)
+                    ? 0f
+                    : pred.Score;
+                return (Tip: tip, Score: safeScore);
             })
             .OrderByDescending(x => x.Score)
             .Take(cantidad)
