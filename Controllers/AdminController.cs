@@ -26,7 +26,7 @@ public class AdminController : Controller
     {
         ViewBag.TotalUsuarios = await _context.Usuarios.CountAsync();
         ViewBag.TotalEventos = await _context.Eventos.CountAsync();
-        ViewBag.TotalLugares = await _context.Lugares.CountAsync();
+        ViewBag.TotalLugares = await _context.Lugares.CountAsync() + await _context.RestaurantesCercanos.CountAsync();
         ViewBag.TotalTareas = await _context.Tareas.CountAsync();
         ViewBag.TotalTips = await _context.TipsEstudio.CountAsync();
         
